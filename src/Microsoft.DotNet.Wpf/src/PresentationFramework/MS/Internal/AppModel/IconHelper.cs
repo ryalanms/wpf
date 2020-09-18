@@ -9,7 +9,6 @@
 
 using System;
 using System.Security;
-using System.Security.Permissions;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
@@ -78,7 +77,6 @@ namespace MS.Internal.AppModel
             largeIconHandle = null;
             smallIconHandle = null;
 
-            SecurityHelper.DemandUIWindowPermission();
 
             // Get the handle of the module that created the running process.
             string iconModuleFile = UnsafeNativeMethods.GetModuleFileName(new HandleRef());

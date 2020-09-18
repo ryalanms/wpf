@@ -1858,6 +1858,9 @@ namespace System.Windows
 
                         int caretWidth = 0;
 
+#if NEVER
+                        // this code would work if the OS treated SPI_GETCARETWIDTH
+                        // like all the other metrics, scaling it to the primary monitor's DPI
                         if (UnsafeNativeMethods.SystemParametersInfo(NativeMethods.SPI_GETCARETWIDTH, 0, ref caretWidth, 0))
                         {
                             _caretWidth = ConvertPixel(caretWidth);
@@ -1867,6 +1870,24 @@ namespace System.Windows
                             _cacheValid[(int)CacheSlot.CaretWidth] = false;
                             throw new Win32Exception();
                         }
+#else
+                        // the OS doesn't scale SPI_GETCARETWIDTH to the primary monitor's DPI,
+                        // so we should not apply the ConvertPixel adjustment.
+                        // Call SPI in "unaware" mode;  this ensures we won't break
+                        // if the OS decides to "fix" their anomalous behavior.
+                        using (DpiUtil.WithDpiAwarenessContext(MS.Utility.DpiAwarenessContextValue.Unaware))
+                        {
+                            if (UnsafeNativeMethods.SystemParametersInfo(NativeMethods.SPI_GETCARETWIDTH, 0, ref caretWidth, 0))
+                            {
+                                _caretWidth = (double)caretWidth;
+                            }
+                            else
+                            {
+                                _cacheValid[(int)CacheSlot.CaretWidth] = false;
+                                throw new Win32Exception();
+                            }
+                        }
+#endif
                     }
                 }
 
@@ -2527,7 +2548,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.FullPrimaryScreenWidth])
@@ -2551,7 +2571,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.FullPrimaryScreenHeight])
@@ -2715,7 +2734,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MaximizedPrimaryScreenWidth])
@@ -2739,7 +2757,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MaximizedPrimaryScreenHeight])
@@ -2763,7 +2780,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MaximumWindowTrackWidth])
@@ -2787,7 +2803,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MaximumWindowTrackHeight])
@@ -2891,7 +2906,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MinimumWindowWidth])
@@ -2915,7 +2929,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MinimumWindowHeight])
@@ -2939,7 +2952,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MinimizedWindowWidth])
@@ -2963,7 +2975,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MinimizedWindowHeight])
@@ -3027,7 +3038,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MinimumWindowTrackWidth])
@@ -3051,7 +3061,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MinimumWindowTrackHeight])
@@ -3116,7 +3125,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.WindowCaptionButtonWidth])
@@ -3281,7 +3289,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.VirtualScreenWidth])
@@ -3305,7 +3312,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.VirtualScreenHeight])
@@ -3370,7 +3376,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.WindowCaptionHeight])
@@ -3395,7 +3400,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.KanjiWindowHeight])
@@ -3419,7 +3423,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.MenuBarHeight])
@@ -3463,7 +3466,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsImmEnabled])
@@ -3488,7 +3490,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsMediaCenter])
@@ -3532,7 +3533,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsMiddleEastEnabled])
@@ -3596,7 +3596,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsPenWindows])
@@ -3620,7 +3619,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsRemotelyControlled])
@@ -3644,7 +3642,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsRemoteSession])
@@ -3668,7 +3665,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.ShowSounds])
@@ -3692,7 +3688,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsSlowMachine])
@@ -3716,7 +3711,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.SwapButtons])
@@ -3740,7 +3734,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.IsTabletPC])
@@ -3764,7 +3757,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.VirtualScreenLeft])
@@ -3788,7 +3780,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 lock (_cacheValid)
                 {
                     while (!_cacheValid[(int)CacheSlot.VirtualScreenTop])

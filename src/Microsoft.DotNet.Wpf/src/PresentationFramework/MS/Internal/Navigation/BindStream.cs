@@ -12,7 +12,6 @@
 using System;
 using System.IO;
 using System.Security; // SecurityCritical attribute
-using System.Security.Permissions;
 using MS.Internal.AppModel;
 using System.Net;
 using System.Windows.Threading; //DispatcherObject
@@ -292,6 +291,7 @@ namespace MS.Internal.Navigation
         /// Overridden InitializeLifetimeService method
         /// </summary>
         /// <returns></returns>
+        [ObsoleteAttribute("InitializeLifetimeService is obsolete.", false)]
         public override object InitializeLifetimeService()
         {
             return _stream.InitializeLifetimeService();

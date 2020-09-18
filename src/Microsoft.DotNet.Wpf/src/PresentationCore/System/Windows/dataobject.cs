@@ -26,7 +26,6 @@ namespace System.Windows
     using System.Runtime.Serialization;
     using System.Runtime.Serialization.Formatters.Binary;
     using System.Security;
-    using System.Security.Permissions;
     using System.Windows.Interop;
     using System.Windows.Media.Imaging;
     using System.Text;
@@ -61,7 +60,6 @@ namespace System.Windows
         /// </summary>
         public DataObject()
         {
-            SecurityHelper.DemandAllClipboardPermission();
             _innerData = new DataStore();
         }
 
@@ -70,7 +68,6 @@ namespace System.Windows
         /// </summary>
         public DataObject(object data)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (data == null)
             {
                 throw new ArgumentNullException("data");
@@ -104,7 +101,6 @@ namespace System.Windows
         /// </summary>
         public DataObject(string format, object data)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (format == null)
             {
                 throw new ArgumentNullException("format");
@@ -130,7 +126,6 @@ namespace System.Windows
         /// </summary>
         public DataObject(Type format, object data)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (format == null)
             {
                 throw new ArgumentNullException("format");
@@ -149,7 +144,6 @@ namespace System.Windows
         /// </summary>
         public DataObject(string format, object data, bool autoConvert)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (format == null)
             {
                 throw new ArgumentNullException("format");
@@ -343,7 +337,6 @@ namespace System.Windows
         /// </summary>
         public void SetData(object data)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (data == null)
             {
                 throw new ArgumentNullException("data");
@@ -357,7 +350,6 @@ namespace System.Windows
         /// </summary>
         public void SetData(string format, object data)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (format == null)
             {
                 throw new ArgumentNullException("format");
@@ -382,7 +374,6 @@ namespace System.Windows
         /// </summary>
         public void SetData(Type format, object data)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (format == null)
             {
                 throw new ArgumentNullException("format");
@@ -404,9 +395,9 @@ namespace System.Windows
         /// <remarks>
         ///     Callers must have UIPermission(UIPermissionClipboard.AllClipboard) to call this API.
         /// </remarks>
+        [FriendAccessAllowed]
         public void SetData(string format, Object data, bool autoConvert)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (format == null)
             {
                 throw new ArgumentNullException("format");
@@ -417,7 +408,7 @@ namespace System.Windows
                 throw new ArgumentException(SR.Get(SRID.DataObject_EmptyFormatNotAllowed));
             }
 
-            CriticalSetData(format, data, autoConvert);
+            _innerData.SetData(format, data, autoConvert);
         }
 
 
@@ -760,29 +751,21 @@ namespace System.Windows
                 }
                 else if ( ( formatetc.tymed & TYMED.TYMED_ISTREAM ) != 0 )
                 {
-                    // Checking for the unmanaged code permission.
-                    if ( SecurityHelper.CheckUnmanagedCodePermission() )
-                    {
-                        medium.tymed = TYMED.TYMED_ISTREAM;
+                    medium.tymed = TYMED.TYMED_ISTREAM;
 
-                        IStream istream = null;
-                        hr = Win32CreateStreamOnHGlobal(IntPtr.Zero, true /*deleteOnRelease*/, ref istream);
-                        if ( NativeMethods.Succeeded(hr) )
+                    IStream istream = null;
+                    hr = Win32CreateStreamOnHGlobal(IntPtr.Zero, true /*deleteOnRelease*/, ref istream);
+                    if ( NativeMethods.Succeeded(hr) )
+                    {
+                        medium.unionmember = Marshal.GetComInterfaceForObject(istream, typeof(IStream));
+                        Marshal.ReleaseComObject(istream);
+
+                        hr = OleGetDataUnrestricted(ref formatetc, ref medium, false /* doNotReallocate */);
+
+                        if ( NativeMethods.Failed(hr) )
                         {
-                            medium.unionmember = Marshal.GetComInterfaceForObject(istream, typeof(IStream));
-                            Marshal.ReleaseComObject(istream);
-
-                            hr = OleGetDataUnrestricted(ref formatetc, ref medium, false /* doNotReallocate */);
-
-                            if ( NativeMethods.Failed(hr) )
-                            {
-                                Marshal.Release(medium.unionmember);
-                            }
+                            Marshal.Release(medium.unionmember);
                         }
-                    }
-                    else
-                    {
-                        hr = NativeMethods.E_FAIL;
                     }
                 }
                 else
@@ -866,7 +849,6 @@ namespace System.Windows
         /// </summary>
         void IComDataObject.SetData(ref FORMATETC pFormatetcIn, ref STGMEDIUM pmedium, bool fRelease)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             if (_innerData is OleConverter)
             {
                 ((OleConverter)_innerData).OleDataObject.SetData(ref pFormatetcIn, ref pmedium, fRelease);
@@ -1195,7 +1177,6 @@ namespace System.Windows
         /// </summary>
         internal static void Win32DeleteObject(HandleRef handleDC)
         {
-            SecurityHelper.DemandUnmanagedCode();
             UnsafeNativeMethods.DeleteObject(handleDC);
         }
 
@@ -1286,25 +1267,13 @@ namespace System.Windows
                 || IsFormatEqual(format, DataFormats.StringFormat))
             {
                 string[] arrayFormats;
-                // we do this to block copy of the string synonym in partial trust because that
-                // requires elevations. This is more of a resource issue than anything else at this point.
-                // We might consider doing this in V2.
-                // Also we want to avoid making the serialization code non transparent.
-                if (SecurityHelper.CheckUnmanagedCodePermission())
-                {
-                    arrayFormats = new string[] {
-                                        DataFormats.Text,
-                                        DataFormats.UnicodeText,
-                                        DataFormats.StringFormat,
-                                        };
-                }
-                else
-                {
-                    arrayFormats = new string[] {
-                                        DataFormats.Text,
-                                        DataFormats.UnicodeText,
-                                        };
-                }
+
+                arrayFormats = new string[] {
+                                    DataFormats.Text,
+                                    DataFormats.UnicodeText,
+                                    DataFormats.StringFormat,
+                                    };
+
                 return arrayFormats;
             }
 
@@ -1357,18 +1326,6 @@ namespace System.Windows
         #region Private Methods
 
 
-        /// <param name="format"></param>
-        /// <param name="data"></param>
-        /// <param name="autoConvert"></param>
-        [FriendAccessAllowed]
-        internal void CriticalSetData(string format, Object data, bool autoConvert)
-        {
-            if (data == null)
-            {
-                throw new ArgumentNullException("data");
-            }
-            _innerData.SetData(format, data, autoConvert);
-        }
 
         /// <summary>
         /// Behaves like IComDataObject.GetData and IComDataObject.GetDataHere,
@@ -1429,7 +1386,6 @@ namespace System.Windows
 
         private IntPtr GetCompatibleBitmap(object data)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             IntPtr hBitmap;
             IntPtr hBitmapNew;
@@ -1812,7 +1768,9 @@ namespace System.Windows
 
                     formatter = new BinaryFormatter();
 
+                    #pragma warning disable SYSLIB0011 // BinaryFormatter is obsolete 
                     formatter.Serialize(stream, data);
+                    #pragma warning restore SYSLIB0011 // BinaryFormatter is obsolete
                     return SaveStreamToHandle(handle, stream, doNotReallocate);
                 }
             }
@@ -2196,28 +2154,12 @@ namespace System.Windows
         private static bool IsFormatAndDataSerializable(string format, object data)
         {
             return
-                (IsFormatNotSupportedInPartialTrust(format))
-                 &&
-                 (IsFormatEqual(format, DataFormats.Serializable)
+                 IsFormatEqual(format, DataFormats.Serializable)
                   || data is ISerializable
-                  || (data != null && data.GetType().IsSerializable));
+                  || (data != null && data.GetType().IsSerializable);
         }
 
-        /// <summary>
-        ///     This code is used to determine whether any of the formats in the list here are supported in partial trust.
-        ///     By adding an entry here we are letting consumers set and get data for this format in partial trust.
-        /// </summary>
-        /// <param name="format"></param>
-        /// <returns></returns>
-        private static bool IsFormatNotSupportedInPartialTrust(string format)
-        {
-            return (!IsFormatEqual(format, DataFormats.Text)
-                    && !IsFormatEqual(format, DataFormats.OemText)
-                    && !IsFormatEqual(format, DataFormats.UnicodeText)
-                    && !IsFormatEqual(format, DataFormats.CommaSeparatedValue)
-                    && !IsFormatEqual(format, DataFormats.Xaml)
-                    && !IsFormatEqual(format, DataFormats.ApplicationTrust));
-        }
+
         /// <summary>
         /// Return true if the format string are equal(Case-senstive).
         /// </summary>
@@ -2287,7 +2229,6 @@ namespace System.Windows
                 // Data is BitmapSource, but have the mismatched System.Drawing.Bitmap format
                 if (autoConvert)
                 {
-                    SecurityHelper.DemandUnmanagedCode();
 
                     // Convert data from BitmapSource to SystemDrawingBitmap
                     bitmapData = SystemDrawingHelper.GetBitmap(data);
@@ -2596,7 +2537,6 @@ namespace System.Windows
 
             public string[] GetFormats(bool autoConvert)
             {
-                SecurityHelper.DemandAllClipboardPermission();
 
                 IEnumFORMATETC enumFORMATETC;
                 ArrayList formats;
@@ -2692,7 +2632,6 @@ namespace System.Windows
             {
                 get
                 {
-                    SecurityHelper.DemandUnmanagedCode();
                     return _innerData;
                 }
             }
@@ -2721,7 +2660,6 @@ namespace System.Windows
 
             private Object GetData(string format, bool autoConvert, DVASPECT aspect, int index)
             {
-                SecurityHelper.DemandAllClipboardPermission();
 
                 Object baseVar;
                 Object original;
@@ -2771,7 +2709,6 @@ namespace System.Windows
 
             private bool GetDataPresent(string format, bool autoConvert, DVASPECT aspect, int index)
             {
-                SecurityHelper.DemandAllClipboardPermission();
 
                 bool baseVar;
 
@@ -2914,30 +2851,47 @@ namespace System.Windows
                     }
                     else if (IsFormatEqual(format, DataFormats.FileDrop))
                     {
-                        SecurityHelper.DemandFilePathDiscoveryWriteRead();
                         data = (object)ReadFileListFromHandle(hglobal);
                     }
                     else if (IsFormatEqual(format, DataFormats.FileName))
                     {
-                        SecurityHelper.DemandFilePathDiscoveryWriteRead();
                         data = new string[] { ReadStringFromHandle(hglobal, false) };
                     }
                     else if (IsFormatEqual(format, DataFormats.FileNameW))
                     {
-                        SecurityHelper.DemandFilePathDiscoveryWriteRead();
                         data = new string[] { ReadStringFromHandle(hglobal, true) };
                     }
                     else if (IsFormatEqual(format, typeof(BitmapSource).FullName))
                     {
                         data = ReadBitmapSourceFromHandle(hglobal);
                     }
-                    //  Restrict deserialization to only primitives 
-                    // and strings here to prevent potentially malicious objects from
+                    // Limit deserialization to DataFormats that correspond to primitives, which are:
+                    //
+                    // DataFormats.CommaSeparatedValue
+                    // DataFormats.FileDrop
+                    // DataFormats.Html
+                    // DataFormats.OemText
+                    // DataFormats.PenData
+                    // DataFormats.Rtf
+                    // DataFormats.Serializable
+                    // DataFormats.Text
+                    // DataFormats.UnicodeText
+                    // DataFormats.WaveAudio
+                    // DataFormats.Xaml
+                    // DataFormats.XamlPackage 
+                    // DataFormats.StringFormat *
+                    // 
+                    // * Out of these, we will disallow deserialization of 
+                    // DataFormats.StringFormat to prevent potentially malicious objects from
                     // being deserialized as part of a "text" copy-paste or drag-drop.
+                    // TypeRestrictingSerializationBinder will throw when it encounters 
+                    // anything other than strings and primitives - this ensures that we will
+                    // continue successfully deserializing basic strings while rejecting other 
+                    // data types that advertise themselves as DataFormats.StringFormat.
+                    // 
                     // The rest of the following formats are pre-defined in the OS, 
-                    // they are not managed objects so we shouldn't try to deserialize them as such,
-                    // allow primitives in a best effort for compat, but restrict other types.
-                    else if (!Clipboard.UseLegacyDangerousClipboardDeserializationMode())
+                    // they are not managed objects - an so we will not attempt to deserialize them. 
+                    else
                     {
                         bool restrictDeserialization =
                           (IsFormatEqual(format, DataFormats.StringFormat) ||
@@ -2956,11 +2910,7 @@ namespace System.Windows
 
                         data = ReadObjectFromHandle(hglobal, restrictDeserialization);
                     }
-                    else
-                    {
-                        data = ReadObjectFromHandle(hglobal, restrictDeserialization: false);
-                    }
-}
+                }
 
                 return data;
             }
@@ -3174,7 +3124,9 @@ namespace System.Windows
                     }
                     try
                     {
+                        #pragma warning disable SYSLIB0011 // BinaryFormatter is obsolete 
                         value = formatter.Deserialize(stream);
+                        #pragma warning restore SYSLIB0011 // BinaryFormatter is obsolete 
                     }
                     catch (RestrictedTypeDeserializationException)
                     {
@@ -3348,52 +3300,18 @@ namespace System.Windows
 
             private int QueryGetDataInner(ref FORMATETC formatetc)
             {
-                int hr;
-
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); // BlessedAssert
-
-                try
-                {
-                    hr = _innerData.QueryGetData(ref formatetc);
-                }
-                finally
-                {
-                    SecurityPermission.RevertAssert();
-                }
-
-                return hr;
+                return _innerData.QueryGetData(ref formatetc);
             }
 
             private void GetDataInner(ref FORMATETC formatetc, out STGMEDIUM medium)
             {
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); // BlessedAssert
-                try
-                {
-                        _innerData.GetData(ref formatetc, out medium);
-                }
-                finally
-                {
-                    SecurityPermission.RevertAssert();
-                }
+                _innerData.GetData(ref formatetc, out medium);
             }
 
             private IEnumFORMATETC EnumFormatEtcInner(DATADIR dwDirection)
             {
-                IEnumFORMATETC enumFORMATETC;
-
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); // BlessedAssert
-
-                try
-                {
-                    enumFORMATETC = _innerData.EnumFormatEtc(dwDirection);
-                }
-                finally
-                {
-                    SecurityPermission.RevertAssert();
-                }
-
-                return enumFORMATETC;
-}
+                return _innerData.EnumFormatEtc(dwDirection);
+            }
 
             /// <summary>
             ///     Get the bitmap from the handle of bitmap(Hbitmap).
@@ -3434,7 +3352,7 @@ namespace System.Windows
             /// </summary>
             private class RestrictedTypeDeserializationException : Exception
             {
-}
+            }
         }
 
         #endregion OleConverter Class
@@ -3559,12 +3477,7 @@ namespace System.Windows
                                 {
                                     if (DataObject.IsFormatAndDataSerializable(cur[mappedFormatIndex], entries[dataStoreIndex].Data))
                                     {
-                                        // We only call CallerHasSerializationPermission once per method call
-                                        // to avoid the perf hit, and debugging nightmare of m*n exceptions
-                                        // getting thrown on copy
-                                        //
-                                        if (serializationCheckFailedForThisFunction
-                                            || !SecurityHelper.CallerHasSerializationPermission())
+                                        if (serializationCheckFailedForThisFunction)
                                         {
                                             serializationCheckFailedForThisFunction = true;
                                             anySerializationFailure = true;
@@ -3579,23 +3492,7 @@ namespace System.Windows
                         }
                         else
                         {
-                            bool anySerializationFailure = serializationCheckFailedForThisFunction;
-                            for (int dataStoreIndex = 0;
-                                !anySerializationFailure
-                                  &&
-                                dataStoreIndex < entries.Length;
-                                dataStoreIndex++)
-                            {
-                                if (DataObject.IsFormatAndDataSerializable(baseVar[baseFormatIndex], entries[dataStoreIndex].Data))
-                                {
-                                    if (!SecurityHelper.CallerHasSerializationPermission())
-                                    {
-                                        serializationCheckFailedForThisFunction = true;
-                                        anySerializationFailure = true;
-                                    }
-                                }
-                            }
-                            if (!anySerializationFailure)
+                             if (!serializationCheckFailedForThisFunction)
                             {
                                 formats.Add(baseVar[baseFormatIndex]);
                             }

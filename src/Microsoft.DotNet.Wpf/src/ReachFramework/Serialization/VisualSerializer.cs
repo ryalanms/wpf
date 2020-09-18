@@ -23,7 +23,6 @@ using System.Windows.Xps.Packaging;
 using Microsoft.Internal.AlphaFlattener;
 
 using System.Security;
-using System.Security.Permissions;
 using MS.Utility;
 
 namespace System.Windows.Xps.Serialization
@@ -2026,29 +2025,7 @@ namespace System.Windows.Xps.Serialization
 
         private static bool EmbeddingAllowed(GlyphTypeface typeface)
         {
-            CodeAccessPermission fontReadPermission = typeface.CriticalFileReadPermission;
-
-            FontEmbeddingRight embeddingRights = FontEmbeddingRight.Installable;
-
-
-            if (fontReadPermission != null)
-            {
-                fontReadPermission.Assert(); // Blessed assert
-            }
-
-            try
-            {
-                embeddingRights = typeface.EmbeddingRights;
-            }
-            finally
-            {
-                if (fontReadPermission != null)
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
-            }
-
-            return (XpsFontSubsetter.DetermineEmbeddingAction(embeddingRights) != FontEmbeddingAction.ImageOnlyFont);
+            return (XpsFontSubsetter.DetermineEmbeddingAction(typeface.EmbeddingRights) != FontEmbeddingAction.ImageOnlyFont);
         }
 
         /// <summary>

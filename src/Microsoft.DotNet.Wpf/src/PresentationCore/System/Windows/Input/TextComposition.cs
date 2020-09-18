@@ -19,7 +19,6 @@ using System.Text;
 using System.Windows.Threading;
 using System.Windows;
 using System.Security; 
-using System.Security.Permissions; 
 using MS.Win32;
 
 using SR=MS.Internal.PresentationCore.SR;
@@ -143,9 +142,6 @@ namespace System.Windows.Input
         /// <summary>
         ///     Finalize the composition.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual void Complete()
         {
 //             VerifyAccess();

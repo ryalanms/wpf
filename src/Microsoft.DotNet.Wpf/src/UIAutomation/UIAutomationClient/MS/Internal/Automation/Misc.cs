@@ -18,7 +18,6 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using System.Text;
 using System.Windows;
 using System.Windows.Automation;
@@ -504,7 +503,9 @@ namespace MS.Internal.Automation
             }
             else
             {
+                #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
                 RuntimeHelpers.PrepareConstrainedRegions();
+                #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
                 bool fRelease = false;
                 try
                 {

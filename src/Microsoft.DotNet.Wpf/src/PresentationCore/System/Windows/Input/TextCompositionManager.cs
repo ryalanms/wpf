@@ -12,7 +12,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security;
-using System.Security.Permissions;
 using System.Text;
 using System.Windows.Threading;
 using System.Windows;
@@ -286,9 +285,6 @@ namespace System.Windows.Input
         /// <summary>
         ///     Start the composition.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static bool StartComposition(TextComposition composition)
         {
             return UnsafeStartComposition(composition);
@@ -297,9 +293,6 @@ namespace System.Windows.Input
         /// <summary>
         ///     Update the composition.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static bool UpdateComposition(TextComposition composition)
         {
             return UnsafeUpdateComposition(composition);
@@ -308,9 +301,6 @@ namespace System.Windows.Input
         /// <summary>
         ///     Complete the composition.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static bool CompleteComposition(TextComposition composition)
         {
             return UnsafeCompleteComposition(composition);
@@ -441,17 +431,8 @@ namespace System.Windows.Input
 
         private static string GetCurrentOEMCPEncoding(int code)
         {
-            SecurityPermission sp = new SecurityPermission(SecurityPermissionFlag.UnmanagedCode);
-            sp.Assert();//Blessed Assert
-            try
-            {
-                int cp =  UnsafeNativeMethods.GetOEMCP();
-                return CharacterEncoding(cp, code);
-            }
-            finally
-            {
-                SecurityPermission.RevertAssert();
-            }
+            int cp =  UnsafeNativeMethods.GetOEMCP();
+            return CharacterEncoding(cp, code);
         }
 
         // Convert code to the string based on the code page.
@@ -963,33 +944,19 @@ namespace System.Windows.Input
             {
                 if (!_isHexNumpadRegistryChecked)
                 {
-                    // Acquire permissions to read the one key we care about from the registry
-                    RegistryPermission permission = new RegistryPermission(
-                        RegistryPermissionAccess.Read,
-                        "HKEY_CURRENT_USER\\Control Panel\\Input Method");
-            
-                    permission.Assert();
+                    object obj;
+                    RegistryKey key;
 
-                    try
+                    key = Registry.CurrentUser.OpenSubKey("Control Panel\\Input Method");
+                    if (key != null)
                     {
-                        object obj;
-                        RegistryKey key;
+                        obj = key.GetValue("EnableHexNumpad");
 
-                        key = Registry.CurrentUser.OpenSubKey("Control Panel\\Input Method");
-                        if (key != null)
+                        if ((obj is string) && ((string)obj != "0"))
                         {
-                            obj = key.GetValue("EnableHexNumpad");
-
-                            if ((obj is string) && ((string)obj != "0"))
-                            {
-                                _isHexNumpadEnabled = true;
-                            }
+                            _isHexNumpadEnabled = true;
                         }
-                     }
-                     finally
-                     {
-                         RegistryPermission.RevertAssert();
-                     }
+                    }
 
                     _isHexNumpadRegistryChecked = true;
                 }

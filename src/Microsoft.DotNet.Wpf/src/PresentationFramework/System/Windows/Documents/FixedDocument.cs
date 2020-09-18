@@ -38,7 +38,6 @@ namespace System.Windows.Documents
     using System.Text;
     using MS.Internal.IO.Packaging;
     using System.Security;
-    using System.Security.Permissions;
 
     using PackUriHelper = System.IO.Packaging.PackUriHelper;
     //=====================================================================
@@ -995,7 +994,7 @@ namespace System.Windows.Documents
             Uri absTargetUri = null;
             if (contentUri != null && relationshipName != null)
             {
-                Uri partUri = MS.Internal.IO.Packaging.PackUriHelper.GetPartUri(contentUri);
+                Uri partUri = PackUriHelper.GetPartUri(contentUri);
                 if (partUri != null)
                 {
                     Uri packageUri = PackUriHelper.GetPackageUri(contentUri);
@@ -1003,10 +1002,7 @@ namespace System.Windows.Documents
 
                     if (package == null)
                     {
-                        if (SecurityHelper.CheckEnvironmentPermission())
-                        {
-                            package = PackageStore.GetPackage(packageUri);
-                        }
+                        package = PackageStore.GetPackage(packageUri);
                     }
 
                     if (package != null)

@@ -15,7 +15,6 @@ using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using MS.Internal.KnownBoxes;
 using MS.Internal.PresentationCore;
@@ -124,7 +123,6 @@ namespace System.Windows.Input
         {
             get
             {
-                SecurityHelper.DemandUIWindowPermission();
                 return _activeSource;
             }
         }

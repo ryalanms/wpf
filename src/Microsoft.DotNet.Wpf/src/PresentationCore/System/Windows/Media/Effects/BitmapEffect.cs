@@ -22,7 +22,6 @@ using System.Windows.Media.Composition;
 using System.Windows.Media.Imaging;
 using System.Security;
 using MS.Internal.PresentationCore;
-using System.Security.Permissions;
 
 using SR = MS.Internal.PresentationCore.SR;
 using SRID = MS.Internal.PresentationCore.SRID;
@@ -39,13 +38,7 @@ namespace System.Windows.Media.Effects
         /// Constructor
         /// </summary>
         protected BitmapEffect()
-        {
-            // Even though BitmapEffects are obsolete, to preserve compat they are 
-            // still never allowed in partial trust scenarios.  The previous BitmapEffects
-            // would create a native COM object in the constructor, which would demand.
-            // So, demand UIWindow permission immediately in the ctor.            
-            SecurityHelper.DemandUIWindowPermission();          
-            
+        {     
             // STA Requirement
             //
             // Avalon doesn't necessarily require STA, but many components do.  Examples
@@ -85,7 +78,6 @@ namespace System.Windows.Media.Effects
         [Obsolete(MS.Internal.Media.VisualTreeUtils.BitmapEffectObsoleteMessage)]
         unsafe static protected void SetValue(SafeHandle effect, string propertyName, object value)
         {
-            SecurityHelper.DemandUIWindowPermission();
         }
 
         /// <summary>
@@ -95,7 +87,6 @@ namespace System.Windows.Media.Effects
         [Obsolete(MS.Internal.Media.VisualTreeUtils.BitmapEffectObsoleteMessage)]
         unsafe static protected SafeHandle /* IMILBitmapEffect */ CreateBitmapEffectOuter()
         {
-            SecurityHelper.DemandUIWindowPermission();
             return null;
         }
 
@@ -108,7 +99,6 @@ namespace System.Windows.Media.Effects
         unsafe static protected void InitializeBitmapEffect(SafeHandle /*IMILBitmapEffect */ outerObject,
                  SafeHandle/* IMILBitmapEffectPrimitive */ innerObject)
         {
-            SecurityHelper.DemandUIWindowPermission();
         }
 
         #endregion

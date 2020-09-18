@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections;
-using System.Security.Permissions;
 using System.Security ;
 using MS.Internal; 
 using MS.Internal.PresentationCore;                        // SecurityHelper
@@ -41,14 +40,10 @@ namespace System.Windows.Input
         /// <summary>
         ///     The input manager processing the input event.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public InputManager InputManager 
         {
             get 
             {
-                SecurityHelper.DemandUnrestrictedUIPermission(); 
                 return _inputManager;
             }
         }

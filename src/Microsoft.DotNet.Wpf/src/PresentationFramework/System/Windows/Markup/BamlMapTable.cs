@@ -41,7 +41,6 @@ using System.Windows.Media.Media3D;
 using System.Windows.Markup;
 using System.Windows.Shapes;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal.PresentationFramework;
 
 #endif
@@ -140,7 +139,7 @@ namespace System.Windows.Markup
                         probeType.Assembly.FullName == assemblyFullName )
 #else
                     if (probeType.Namespace == clrNamespace)
-#endif  
+#endif
                     {
                         return (short) -probe;
                     }
@@ -1572,7 +1571,7 @@ namespace System.Windows.Markup
                 return converterType;
             }
 
-            // Reflect for per property type converter , but skip if WinFx props
+            // Reflect for per property type converter , but skip if WinFX props
             Assembly ownerAsm = ownerType.Assembly;
 #if PBTCOMPILER
             if (XamlTypeMapper.AssemblyPF != ownerAsm &&
@@ -1976,5 +1975,3 @@ namespace System.Windows.Markup
 
 
 }
-
-

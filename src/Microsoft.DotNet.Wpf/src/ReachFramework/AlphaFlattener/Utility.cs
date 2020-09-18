@@ -18,7 +18,6 @@ using System.Runtime.CompilerServices;
 using MS.Internal.ReachFramework;
 
 using System.Security;
-using System.Security.Permissions;
 using System.Windows.Xps.Serialization;
 using MS.Utility;
 
@@ -1779,24 +1778,7 @@ namespace Microsoft.Internal.AlphaFlattener
         [FriendAccessAllowed]
         public static Uri GetFontUri(GlyphTypeface typeface)
         {
-            CodeAccessPermission discoveryPermission = typeface.CriticalUriDiscoveryPermission;
-
-            if (discoveryPermission != null)
-            {
-                discoveryPermission.Assert();   // BlessedAssert
-            }
-
-            try
-            {
-                return typeface.FontUri;
-            }
-            finally
-            {
-                if (discoveryPermission != null)
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
-            }
+            return typeface.FontUri;
         }
 
         #endregion

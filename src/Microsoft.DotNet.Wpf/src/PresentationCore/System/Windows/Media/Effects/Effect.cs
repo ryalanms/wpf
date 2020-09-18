@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using System.Security;
-using System.Security.Permissions;
 using SecurityHelper=MS.Internal.SecurityHelper; 
 
 namespace System.Windows.Media.Effects
@@ -52,10 +51,6 @@ namespace System.Windows.Media.Effects
         /// </summary>
         protected Effect()
         {
-            // Effects are never allowed in partial trust scenarios.  So demand
-            // UIWindow permission immediately in the ctor and get it
-            // over with.  
-            SecurityHelper.DemandUIWindowPermission();            
         }
 
 

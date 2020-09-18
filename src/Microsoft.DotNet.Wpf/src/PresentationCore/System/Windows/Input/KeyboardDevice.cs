@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -89,15 +88,10 @@ namespace System.Windows.Input
         /// <summary>
         ///     Returns the PresentationSource that is reporting input for this device.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
-
         public override PresentationSource ActiveSource
         {
             get
             {
-                SecurityHelper.DemandUnrestrictedUIPermission();
 
                 //VerifyAccess();
                 if (_activeSource != null)
@@ -292,7 +286,6 @@ namespace System.Windows.Input
         {
            get
            {
-               SecurityHelper.DemandUnrestrictedUIPermission();
                return _TsfManager.Value;
            }
         }
@@ -302,7 +295,6 @@ namespace System.Windows.Input
         {
            get
            {
-               SecurityHelper.DemandUnrestrictedUIPermission();
                return _textcompositionManager.Value;
            }
         }

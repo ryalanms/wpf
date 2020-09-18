@@ -19,7 +19,6 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows.Media.Imaging;
 using System.Text;
 using MS.Internal.PresentationCore;                        // SecurityHelper
@@ -59,14 +58,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Container format
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual Guid ContainerFormat
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -84,14 +79,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Author
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual string Author
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -131,14 +122,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Version
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual System.Version Version
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -178,14 +165,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Spec Version
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual Version SpecificationVersion
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -225,14 +208,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Friendly Name
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual string FriendlyName
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -272,14 +251,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Device Manufacturer
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual string DeviceManufacturer
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -319,14 +294,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Device Models
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual string DeviceModels
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -366,14 +337,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Mime types
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual string MimeTypes
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -413,14 +380,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// File extensions
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual string FileExtensions
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -460,14 +423,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Does Support Animation
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual bool SupportsAnimation
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -485,14 +444,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Does Support Lossless
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual bool SupportsLossless
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 
@@ -510,14 +465,10 @@ namespace System.Windows.Media.Imaging
         /// <summary>
         /// Does Support Multiple Frames
         /// </summary>
-        /// <remarks>
-        ///     Callers must have RegistryPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public virtual bool SupportsMultipleFrames
         {
             get
             {
-                SecurityHelper.DemandRegistryPermission();
 
                 EnsureBuiltIn();
 

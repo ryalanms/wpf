@@ -6,7 +6,6 @@
 using System;
 using System.Text;
 using System.Security;
-using System.Security.Permissions;
 using System.Runtime.InteropServices;
 using System.Runtime.ConstrainedExecution;
 using System.Windows.Ink;
@@ -86,14 +85,18 @@ namespace MS.Win32.Recognizer
         // call ReleaseHandle for you.
         public override bool IsInvalid
         {
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
             [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
             get
             {
                 return IsClosed || handle == IntPtr.Zero;
             }
         }
 
+        #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
         override protected bool ReleaseHandle()
         {
             Debug.Assert(handle != IntPtr.Zero);
@@ -123,7 +126,9 @@ namespace MS.Win32.Recognizer
         // call ReleaseHandle for you.
         public override bool IsInvalid
         {
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
             [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
             get
             {
                 return IsClosed || handle == IntPtr.Zero;
@@ -131,7 +136,9 @@ namespace MS.Win32.Recognizer
         }
 
 
+        #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
         override protected bool ReleaseHandle()
         {
             //Note: It is not an error to have already called DestroyRecognizer

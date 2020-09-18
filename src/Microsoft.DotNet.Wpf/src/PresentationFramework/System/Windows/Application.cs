@@ -31,7 +31,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using System.Resources;
 using System.Threading;
 
@@ -272,7 +271,6 @@ namespace System.Windows
         /// <param name="exitCode">returned to the Application.Run() method. Typically this will be returned to the OS</param>
         public void Shutdown(int exitCode)
         {
-            SecurityHelper.DemandUIWindowPermission();
             CriticalShutdown(exitCode);
         }
         internal void CriticalShutdown(int exitCode)
@@ -447,7 +445,7 @@ namespace System.Windows
                 // if not, this is a first time regular load of the component.
                 PackagePart part = GetResourceOrContentPart(resourceLocator);
                 ContentType contentType = new ContentType(part.ContentType);
-                stream = part.GetStream();
+                stream = part.GetSeekableStream();
                 bCloseStream = true;
 
                 //
@@ -511,7 +509,7 @@ namespace System.Windows
 
             PackagePart part = GetResourceOrContentPart(packUri);
             ContentType contentType = new ContentType(part.ContentType);
-            Stream stream = part.GetStream();
+            Stream stream = part.GetSeekableStream();
 
             ParserContext pc = new ParserContext();
             pc.BaseUri = packUri;
@@ -625,7 +623,7 @@ namespace System.Windows
             }
 
             ResourcePart part = GetResourceOrContentPart(uriResource) as ResourcePart;
-            return (part == null) ? null : new StreamResourceInfo(part.GetStream(), part.ContentType);
+            return (part == null) ? null : new StreamResourceInfo(part.GetSeekableStream(), part.ContentType);
         }
 
         /// <summary>
@@ -658,7 +656,7 @@ namespace System.Windows
             }
 
             ContentFilePart part = GetResourceOrContentPart(uriContent) as ContentFilePart;
-            return (part == null) ? null : new StreamResourceInfo(part.GetStream(), part.ContentType);
+            return (part == null) ? null : new StreamResourceInfo(part.GetSeekableStream(), part.ContentType);
         }
 
         /// <summary>
@@ -692,11 +690,8 @@ namespace System.Windows
 
             Uri resolvedUri = BindUriHelper.GetResolvedUri(BaseUriHelper.SiteOfOriginBaseUri, uriRemote);
 
-            // Using PackUriHelper.ValidateAndGetPackUriComponents internal method
-            // to get Package and Part Uri in one step
-            Uri packageUri;
-            Uri partUri;
-            MS.Internal.IO.Packaging.PackUriHelper.ValidateAndGetPackUriComponents(resolvedUri, out packageUri, out partUri);
+            Uri packageUri = PackUriHelper.GetPackageUri(resolvedUri);
+            Uri partUri = PackUriHelper.GetPartUri(resolvedUri);
 
             //
             // SiteOfOriginContainer must have been added into the package cache, the code should just
@@ -719,7 +714,7 @@ namespace System.Windows
             {
                 try
                 {
-                    stream = sooPart.GetStream();
+                    stream = sooPart.GetSeekableStream();
 
                     if (stream == null)
                     {
@@ -2012,12 +2007,9 @@ namespace System.Windows
             Uri packAppUri = BaseUriHelper.PackAppBaseUri;
             Uri resolvedUri = BindUriHelper.GetResolvedUri(packAppUri, uri);
 
-            // Using PackUriHelper.ValidateAndGetPackUriComponents internal method
-            // to get Package and Part Uri in one step
-            Uri packageUri;
-            Uri partUri;
-            MS.Internal.IO.Packaging.PackUriHelper.ValidateAndGetPackUriComponents(resolvedUri, out packageUri, out partUri);
-
+            Uri packageUri = PackUriHelper.GetPackageUri(resolvedUri);
+            Uri partUri = PackUriHelper.GetPartUri(resolvedUri);
+            
             //
             // ResourceContainer must have been added into the package cache, the code should just
             // take use of that ResourceContainer instance, instead of creating a new instance here.
@@ -2137,7 +2129,6 @@ namespace System.Windows
             }
             else
             {
-                SecurityHelper.DemandUnmanagedCode();
                 refInt = IntPtr.Zero;
 
                 // we have handled the event DefWndProc will not be called for this msg
@@ -2300,10 +2291,6 @@ namespace System.Windows
         {
             string soundFile = null;
             string regPath = string.Format(CultureInfo.InvariantCulture, SYSTEM_SOUNDS_REGISTRY_LOCATION, soundName);
-            PermissionSet permissions = new PermissionSet(null);
-            permissions.AddPermission(new RegistryPermission(RegistryPermissionAccess.Read, SYSTEM_SOUNDS_REGISTRY_BASE));
-            permissions.AddPermission(new EnvironmentPermission(PermissionState.Unrestricted));
-            permissions.Assert();
             try
             {
                 using (RegistryKey soundKey = Registry.CurrentUser.OpenSubKey(regPath))
@@ -2318,10 +2305,6 @@ namespace System.Windows
             // (Application.PlaySourd crash when the registry is broken)
             catch (System.IndexOutOfRangeException)
             {
-            }
-            finally
-            {
-               CodeAccessPermission.RevertAssert();
             }
 
             return soundFile;

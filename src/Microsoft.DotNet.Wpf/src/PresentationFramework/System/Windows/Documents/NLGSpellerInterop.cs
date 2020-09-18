@@ -15,7 +15,6 @@ namespace System.Windows.Documents
     using MS.Win32;
     using System.Globalization;
     using System.Security;
-    using System.Security.Permissions;
     using System.IO;
     using System.Collections.Generic;
     using System.Windows.Controls;
@@ -315,9 +314,6 @@ namespace System.Windows.Documents
         /// which we created and filled with data from pack Uri locations specified by user.
         /// These 'trusted' files are placed under <paramref name="trustedFolder"/>.
         ///
-        /// Explicitely specified file locations we will passed to ILexicon APIs without asserting
-        /// Security permissions, so it would pass in FullTrust and fail in PartialTrust.
-        ///
         /// Files specified in <paramref name="trustedFolder"/> are wrapped in FileIOPermission.Assert(),
         /// providing read access to trusted files under <paramref name="trustedFolder"/>, i.e. additionally
         /// we're making sure that specified trusted locations are under the trusted Folder.
@@ -327,16 +323,7 @@ namespace System.Windows.Documents
         /// </remarks>
         internal override object LoadDictionary(Uri item, string trustedFolder)
         {
-            // Assert neccessary security to load trusted files.
-            new FileIOPermission(FileIOPermissionAccess.Read, trustedFolder).Assert();
-            try
-            {
-                return LoadDictionary(item.LocalPath);
-            }
-            finally
-            {
-                FileIOPermission.RevertAssert();
-            }
+            return LoadDictionary(item.LocalPath);
         }
 
         /// <summary>
@@ -656,6 +643,12 @@ namespace System.Windows.Documents
 
             #region SpellerInteropBase.ISpellerSegment
 
+            /// <inheritdoc/>
+            public string SourceString { get; }
+
+            /// <inheritdoc/>
+            public string Text => SourceString?.Substring(TextRange.Start, TextRange.Length);
+
             /// <summary>
             /// Returns a read-only list of sub-segments of this segment
             /// </summary>
@@ -972,8 +965,6 @@ namespace System.Windows.Documents
 
             try
             {
-                FileIOPermission fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, lexiconFilePath);
-                fileIOPermission.Demand();
                 hasDemand = true;
 
                 lexicon = NLGSpellerInterop.CreateLexicon();

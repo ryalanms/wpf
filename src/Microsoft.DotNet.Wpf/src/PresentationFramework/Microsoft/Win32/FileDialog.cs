@@ -34,7 +34,6 @@ namespace Microsoft.Win32
     using System.IO;
     using System.Runtime.InteropServices;
     using System.Security;
-    using System.Security.Permissions;
     using System.Text;
     using System.Threading;
     using System.Windows;
@@ -89,12 +88,8 @@ namespace Microsoft.Win32
         ///  implementation of Reset() if they choose to
         ///  override this function.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public override void Reset()
         {
-            SecurityHelper.DemandUnrestrictedFileIOPermission();
 
             Initialize();
         }
@@ -138,9 +133,6 @@ namespace Microsoft.Win32
         ///  dialog box automatically adds an extension to a
         ///  file name if the user omits the extension.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public bool AddExtension
         {
             get
@@ -149,7 +141,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 SetOption(OPTION_ADDEXTENSION, value);
             }
@@ -167,9 +158,6 @@ namespace Microsoft.Win32
         ///  the dialog box displays a warning if the 
         ///  user specifies a file name that does not exist.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public virtual bool CheckFileExists
         {
             get
@@ -178,7 +166,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 SetOption(NativeMethods.OFN_FILEMUSTEXIST, value);
             }
@@ -190,9 +177,6 @@ namespace Microsoft.Win32
         ///  used and the user types an invalid path and file name in the File Name entry field, 
         ///  a warning is displayed in a message box.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public bool CheckPathExists
         {
             get
@@ -201,7 +185,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 SetOption(NativeMethods.OFN_PATHMUSTEXIST, value);
             }
@@ -250,9 +233,6 @@ namespace Microsoft.Win32
         ///  of the file referenced by the shortcut or whether it returns the location 
         ///  of the shortcut (.lnk).
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public bool DereferenceLinks
         {
             get
@@ -261,7 +241,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 SetOption(NativeMethods.OFN_NODEREFERENCELINKS, !value);
             }
@@ -333,19 +312,14 @@ namespace Microsoft.Win32
         ///  Gets or sets a string containing the full path of the file selected in 
         ///  the file dialog box.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public string FileName
         {
             get
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
                 return CriticalFileName;
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 // Allow users to set a filename to stored in _fileNames.
                 // If null is passed in, we clear the entire list.
@@ -368,14 +342,10 @@ namespace Microsoft.Win32
         /// <summary>
         ///     Gets the file names of all selected files in the dialog box.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public string[] FileNames
         {
             get
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 // FileNamesInternal is a property we use to clone
                 // the string array before returning it.
@@ -475,9 +445,6 @@ namespace Microsoft.Win32
         /// <summary>
         ///  Gets or sets the initial directory displayed by the file dialog box.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public string InitialDirectory
         {
             get
@@ -487,7 +454,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 _initialDirectory.Value = value;
             }
@@ -500,9 +466,6 @@ namespace Microsoft.Win32
         ///  This property is only valid for SaveFileDialog;  it has no effect
         ///  when set on an OpenFileDialog.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public bool RestoreDirectory
         {
             get
@@ -511,7 +474,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 SetOption(NativeMethods.OFN_NOCHANGEDIR, value);
             }
@@ -522,9 +484,6 @@ namespace Microsoft.Win32
         ///       If this property is null, a localized default from the operating
         ///       system itself will be used (typically something like "Save As" or "Open")
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public string Title
         {
             get
@@ -534,7 +493,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 _title.Value = value;
             }
@@ -548,9 +506,6 @@ namespace Microsoft.Win32
         ///  Gets or sets a value indicating whether the dialog box accepts only valid
         ///  Win32 file names.
         /// </summary>
-        /// <Remarks>
-        ///     Callers must have FileIOPermission(PermissionState.Unrestricted) to call this API.
-        /// </Remarks>
         public bool ValidateNames
         {
             get
@@ -559,7 +514,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUnrestrictedFileIOPermission();
 
                 SetOption(NativeMethods.OFN_NOVALIDATE, !value);
             }
@@ -1124,20 +1078,12 @@ namespace Microsoft.Win32
             {
                 try
                 {
-                    // File.Exists requires a full path, so we call GetFullPath on
+                    // File.Exists requires a full path, so we call GetFullPath on	
                     // the filename before checking if it exists.
-                    (new FileIOPermission(FileIOPermissionAccess.Read | FileIOPermissionAccess.PathDiscovery, fileName)).Assert();
-                    try
-                    {
-                        string tempPath = Path.GetFullPath(fileName);
-                        fileExists = File.Exists(tempPath);
-                    }
-                    finally
-                    {
-                        CodeAccessPermission.RevertAssert();
-                    }
+                    string tempPath = Path.GetFullPath(fileName);
+                    fileExists = File.Exists(tempPath);
                 }
-                // FileIOPermission constructor will throw on invalid paths.
+                // FileIOPermission constructor will throw on invalid paths.	
                 catch (PathTooLongException)
                 {
                     fileExists = false;
@@ -1178,7 +1124,7 @@ namespace Microsoft.Win32
             {
                 if (_fileNames == null)
                 {
-                    return new string[0];
+                    return Array.Empty<string>();
                 }
                 else
                 {

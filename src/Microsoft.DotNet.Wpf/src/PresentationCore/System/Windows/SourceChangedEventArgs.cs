@@ -4,7 +4,6 @@
 
 using System;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using MS.Internal.PresentationCore;                        // SecurityHelper
 using MS.Win32;
@@ -68,7 +67,6 @@ namespace System.Windows
         {
             get 
             {
-                SecurityHelper.DemandUIWindowPermission();
                 return _oldSource.Value;
             }
         }
@@ -83,7 +81,6 @@ namespace System.Windows
         {
             get 
             {
-                SecurityHelper.DemandUIWindowPermission();
                 return _newSource.Value;
             }
         }

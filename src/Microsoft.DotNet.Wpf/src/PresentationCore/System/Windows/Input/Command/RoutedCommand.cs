@@ -7,7 +7,6 @@
 
 using System;
 using System.Security;
-using System.Security.Permissions;
 using System.ComponentModel;
 using System.Collections;
 using System.Windows;
@@ -285,9 +284,6 @@ namespace System.Windows.Input
         ///     Will be set by Rights Management code.
         /// </summary>
         /// <value></value>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         internal bool IsBlockedByRM
         {
             get

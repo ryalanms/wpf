@@ -27,7 +27,7 @@ namespace System.Windows.Media.Effects
         /// </summary>
         public EmbossBitmapEffect()
         {
-}
+        }
 
         /// <summary>
         /// Creates the unmanaged effect handle
@@ -44,7 +44,6 @@ namespace System.Windows.Media.Effects
         [Obsolete(MS.Internal.Media.VisualTreeUtils.BitmapEffectObsoleteMessage)]
         protected override void UpdateUnmanagedPropertyState(SafeHandle unmanagedEffect)
         {
-            SecurityHelper.DemandUIWindowPermission();
         }
     }
 }

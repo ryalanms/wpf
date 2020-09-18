@@ -9,10 +9,7 @@
 
 using System;
 using System.IO;
-
-using System.Net; // WebPermission. 
 using System.Security;
-using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Navigation;
@@ -24,8 +21,6 @@ using System.IO.Packaging;
 using MS.Internal.PresentationFramework;
 using System.ComponentModel;
 using System.Windows.Controls;
-
-using PackUriHelper = MS.Internal.IO.Packaging.PackUriHelper;
 
 namespace MS.Internal.AppModel
 {

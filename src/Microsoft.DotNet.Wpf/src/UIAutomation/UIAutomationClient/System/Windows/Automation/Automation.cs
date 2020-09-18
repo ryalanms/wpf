@@ -13,7 +13,6 @@ using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 using System;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using System.Reflection;
 using System.Diagnostics;
 using MS.Internal.Automation;
@@ -72,11 +71,6 @@ namespace System.Windows.Automation
         /// <param name="el2">element to compare</param>
         /// <returns>true if el1 and el2 refer to the same underlying UI</returns>
         /// <remarks>Both el1 and el1 must be non-null</remarks>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static bool Compare(AutomationElement el1, AutomationElement el2)
         {
             return Misc.Compare(el1, el2);
@@ -90,11 +84,6 @@ namespace System.Windows.Automation
         /// <returns>true if runtimeId1 and runtimeId2 refer to the same underlying UI</returns>
         /// <remarks>Both runtimeId1 and runtimeId2 must be non-null. Can be
         /// used to compare RuntimeIds from elements.</remarks>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static bool Compare(int[] runtimeId1, int[] runtimeId2)
         {
             return Misc.Compare(runtimeId1, runtimeId2);
@@ -139,11 +128,6 @@ namespace System.Windows.Automation
         /// <param name="element">Element on which to listen for control pattern or custom events.</param>
         /// <param name="scope">Specifies whether to listen to property changes events on the specified element, and/or its ancestors and children.</param>
         /// <param name="eventHandler">Delegate to call when the specified event occurs.</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void AddAutomationEventHandler(
             AutomationEvent eventId,
             AutomationElement element,
@@ -216,11 +200,6 @@ namespace System.Windows.Automation
         /// <param name="eventId">a UIAccess or custom event identifier.</param>
         /// <param name="element">Element to remove listener for</param>
         /// <param name="eventHandler">The handler object that was passed to AddEventListener</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void RemoveAutomationEventHandler(
             AutomationEvent eventId,
             AutomationElement element,
@@ -233,8 +212,6 @@ namespace System.Windows.Automation
             Misc.ValidateArgument( eventId != AutomationElement.StructureChangedEvent, SRID.EventIdMustNotBeStructureChanged );
             Misc.ValidateArgument( eventId != AutomationElement.AutomationPropertyChangedEvent, SRID.EventIdMustNotBeAutomationPropertyChanged );
 
-            //CASRemoval:AutomationPermission.Demand( AutomationPermissionFlag.Read );
-
             // Remove the client-side listener for for this event
             ClientEventManager.RemoveListener( eventId, element, eventHandler );
         }
@@ -246,11 +223,6 @@ namespace System.Windows.Automation
         /// <param name="scope">Specifies whether to listen to property changes events on the specified element, and/or its ancestors and children.</param>
         /// <param name="eventHandler">Callback object to call when a specified property change occurs.</param>
         /// <param name="properties">Params array of properties to listen for changes in.</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void AddAutomationPropertyChangedEventHandler(
             AutomationElement element,            // reference element for listening to the event
             TreeScope scope,                   // scope to listen to
@@ -284,11 +256,6 @@ namespace System.Windows.Automation
         /// </summary>
         /// <param name="element">Element to remove listener for</param>
         /// <param name="eventHandler">The handler object that was passed to AutomationPropertyChangedEventHandler</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void RemoveAutomationPropertyChangedEventHandler(
             AutomationElement element,            // reference element being listened to
             AutomationPropertyChangedEventHandler eventHandler     // callback object (used as cookie here)
@@ -296,8 +263,6 @@ namespace System.Windows.Automation
         {
             Misc.ValidateArgumentNonNull(element, "element" );
             Misc.ValidateArgumentNonNull(eventHandler, "eventHandler" );
-
-            //CASRemoval:AutomationPermission.Demand( AutomationPermissionFlag.Read );
 
             // Remove the client-side listener for for this event
             ClientEventManager.RemoveListener(AutomationElement.AutomationPropertyChangedEvent, element, eventHandler);
@@ -309,11 +274,6 @@ namespace System.Windows.Automation
         /// <param name="element">Element on which to listen for structure change events.</param>
         /// <param name="scope">Specifies whether to listen to property changes events on the specified element, and/or its ancestors and children.</param>
         /// <param name="eventHandler">Delegate to call when a structure change event occurs.</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void AddStructureChangedEventHandler(AutomationElement element, TreeScope scope, StructureChangedEventHandler eventHandler)
         {
             Misc.ValidateArgumentNonNull(element, "element");
@@ -330,16 +290,10 @@ namespace System.Windows.Automation
         /// </summary>
         /// <param name="element">Element to remove listener for</param>
         /// <param name="eventHandler">The handler object that was passed to AddStructureChangedListener</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void RemoveStructureChangedEventHandler(AutomationElement element, StructureChangedEventHandler eventHandler)
         {
             Misc.ValidateArgumentNonNull(element, "element");
             Misc.ValidateArgumentNonNull(eventHandler, "eventHandler");
-            //CASRemoval:AutomationPermission.Demand(AutomationPermissionFlag.Read);
 
             // Remove the client-side listener for for this event
             ClientEventManager.RemoveListener(AutomationElement.StructureChangedEvent, element, eventHandler);
@@ -349,11 +303,6 @@ namespace System.Windows.Automation
         /// Called by a client to add a listener for focus changed events.
         /// </summary>
         /// <param name="eventHandler">Delegate to call when a focus change event occurs.</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void AddAutomationFocusChangedEventHandler(
             AutomationFocusChangedEventHandler eventHandler
             )
@@ -372,18 +321,11 @@ namespace System.Windows.Automation
         /// Called by a client to remove a listener for focus changed events.
         /// </summary>
         /// <param name="eventHandler">The handler object that was passed to AddAutomationFocusChangedListener</param>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void RemoveAutomationFocusChangedEventHandler(
             AutomationFocusChangedEventHandler eventHandler
             )
         {
             Misc.ValidateArgumentNonNull(eventHandler, "eventHandler" );
-
-            //CASRemoval:AutomationPermission.Demand( AutomationPermissionFlag.Read );
 
             // Remove the client-side listener for for this event
             ClientEventManager.RemoveFocusListener(eventHandler);
@@ -392,15 +334,8 @@ namespace System.Windows.Automation
         /// <summary>
         /// Called by a client to remove all listeners that the client has added.
         /// </summary>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static void RemoveAllEventHandlers()
         {
-            //CASRemoval:AutomationPermission.Demand( AutomationPermissionFlag.Read );
-
             // Remove the client-side listener for for this event
             ClientEventManager.RemoveAllListeners();
         }

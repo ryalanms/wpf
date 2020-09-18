@@ -4,7 +4,6 @@
 
 using System.Windows.Media; 
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using MS.Internal.PresentationCore;
 using MS.Win32;
@@ -31,7 +30,7 @@ namespace System.Windows.Input
         ///     The mode in which the input is being provided.
         /// </param>
         /// <param name="timestamp">
-        ///     The time when the input occured.
+        ///     The time when the input occurred.
         /// </param>
         /// <param name="inputSource">
         ///     The PresentationSource over which the mouse is moved.

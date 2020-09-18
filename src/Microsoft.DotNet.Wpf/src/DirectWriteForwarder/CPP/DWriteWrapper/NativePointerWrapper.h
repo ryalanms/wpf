@@ -16,19 +16,18 @@ namespace MS { namespace Internal { namespace Text { namespace TextInterface { n
     private ref class NativePointerCriticalHandle abstract : public CriticalHandle
     {
         public:
-            [SecurityCritical]
             NativePointerCriticalHandle(void* pNativePointer);
 
             virtual property bool IsInvalid
             {
-                [SecuritySafeCritical]
+                #pragma warning (disable : 4950) // The Constrained Execution Region (CER) feature is not supported.  
                 [ReliabilityContract(Consistency::WillNotCorruptState, Cer::Success)]
+                #pragma warning (default : 4950) // The Constrained Execution Region (CER) feature is not supported.  
                 bool get() override;
             }
 
             property T* Value
             {
-                [SecurityCritical]
                 T* get();
             }
     };
@@ -38,12 +37,12 @@ namespace MS { namespace Internal { namespace Text { namespace TextInterface { n
     {
         protected:
 
-            [SecuritySafeCritical]
+            #pragma warning (disable : 4950) // The Constrained Execution Region (CER) feature is not supported.  
             [ReliabilityContract(Consistency::WillNotCorruptState, Cer::Success)]
+            #pragma warning (default : 4950) // The Constrained Execution Region (CER) feature is not supported.  
             virtual bool ReleaseHandle() override;
 
         public:
-            [SecurityCritical]
             NativeIUnknownWrapper(IUnknown* pNativePointer);
     };
 
@@ -52,12 +51,12 @@ namespace MS { namespace Internal { namespace Text { namespace TextInterface { n
     {
         protected:
 
-            [SecuritySafeCritical]
+            #pragma warning (disable : 4950) // The Constrained Execution Region (CER) feature is not supported.  
             [ReliabilityContract(Consistency::WillNotCorruptState, Cer::Success)]
+            #pragma warning (default : 4950) // The Constrained Execution Region (CER) feature is not supported.  
             virtual bool ReleaseHandle() override;
 
         public:
-            [SecurityCritical]
             NativePointerWrapper(T* pNativePointer);
     };
 

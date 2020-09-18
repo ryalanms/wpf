@@ -18,7 +18,6 @@ namespace Microsoft.Win32
     using System.Collections.Generic;
     using System.IO;
     using System.Security;
-    using System.Security.Permissions;
     using System.Windows;
 
     using MS.Internal.AppModel;
@@ -73,8 +72,6 @@ namespace Microsoft.Win32
         /// </Remarks>
         public Stream OpenFile()
         {
-            SecurityHelper.DemandFileDialogOpenPermission();
-
             string filename = null;
 
             // FileNamesInternal never returns null.
@@ -93,15 +90,8 @@ namespace Microsoft.Win32
             }
 
             FileStream fileStream = null;
-            (new FileIOPermission(FileIOPermissionAccess.Read, filename)).Assert();
-            try
-            {
-                fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-            }
-            finally
-            {
-                CodeAccessPermission.RevertAssert();
-            }
+
+            fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             // Create a new FileStream from the file and return it.
             return fileStream;
@@ -119,8 +109,6 @@ namespace Microsoft.Win32
         /// </Remarks>
         public Stream[] OpenFiles()
         {
-            SecurityHelper.DemandFileDialogOpenPermission();
-
             // Cache FileNamesInternal to avoid perf issues as per
             // FxCop #CA1817
             String[] cachedFileNames = FileNamesInternal;
@@ -142,15 +130,8 @@ namespace Microsoft.Win32
                 }
 
                 FileStream fileStream = null;
-                (new FileIOPermission(FileIOPermissionAccess.Read, filename)).Assert();
-                try
-                {
-                    fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                }
-                finally
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
+
+                fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
 
                 // Open the file and add it to the list of streams.
                 streams[i] = fileStream;
@@ -171,7 +152,6 @@ namespace Microsoft.Win32
         /// </Remarks>
         public override void Reset()
         {
-            SecurityHelper.DemandUnrestrictedFileIOPermission();
 
             // it is VERY important that the base.reset() call remain here
             // and be located at the top of this function.
@@ -283,17 +263,7 @@ namespace Microsoft.Win32
         /// </summary>
         protected override void CheckPermissionsToShowDialog()
         {
-            SecurityHelper.DemandFileDialogOpenPermission();
-
-            new UIPermission(UIPermissionWindow.AllWindows).Assert();
-            try
-            {
-                base.CheckPermissionsToShowDialog();
-            }
-            finally
-            {
-                SecurityPermission.RevertAssert();
-            }
+            base.CheckPermissionsToShowDialog();
         }
 
         #endregion Protected Methods
@@ -400,8 +370,6 @@ namespace Microsoft.Win32
 
         internal override IFileDialog CreateVistaDialog()
         {
-            new SecurityPermission(PermissionState.Unrestricted).Assert();
-
             return (IFileDialog)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID.FileOpenDialog)));
         }
 

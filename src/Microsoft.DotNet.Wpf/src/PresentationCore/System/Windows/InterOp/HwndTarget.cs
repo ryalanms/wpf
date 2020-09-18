@@ -20,7 +20,6 @@ using System.Windows.Automation.Peers;
 using System.Windows.Media.Composition;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using System.Security;
 using MS.Internal;
 using MS.Internal.Automation;
@@ -115,7 +114,6 @@ namespace System.Windows.Interop
         private static readonly IntPtr Unhandled = IntPtr.Zero;
 
         private MatrixTransform _worldTransform;
-        private DpiScale2 _currentDpiScale;
 
         private SecurityCriticalDataForSet<RenderMode> _renderModePreference = new SecurityCriticalDataForSet<RenderMode>(RenderMode.Default);
 
@@ -276,13 +274,13 @@ namespace System.Windows.Interop
                 //      system DPI scale
                 //  Initialize per-HwndTarget values (done once per HwndTarget instance)
                 //      DPI_AWARENESS_CONTEXT (DpiAwarenessContext property)
-                //      Window DPI scale (_currentDpiScale field)
+                //      Window DPI scale (CurrentDpiScale field)
                 InitializeDpiAwarenessAndDpiScales();
 
                 _worldTransform = new MatrixTransform(
                     new Matrix(
-                        _currentDpiScale.DpiScaleX, 0,
-                        0 , _currentDpiScale.DpiScaleY,
+                        CurrentDpiScale.DpiScaleX, 0,
+                        0 , CurrentDpiScale.DpiScaleY,
                         0 , 0));
 
                 //
@@ -344,7 +342,7 @@ namespace System.Windows.Interop
             // Initialize DpiAwarenessContext (DPI_AWARENESS_CONTEXT) every
             // time the HwndTarget constructor runs- this can change for each HWND
             DpiAwarenessContext = (DpiAwarenessContextValue)DpiUtil.GetDpiAwarenessContext(_hWnd);
-            _currentDpiScale = GetDpiScaleForWindow(_hWnd);
+            CurrentDpiScale = GetDpiScaleForWindow(_hWnd);
         }
 
         /// <summary>
@@ -754,7 +752,7 @@ namespace System.Windows.Interop
                 _hwndClientRectInScreenCoords.bottom - _hwndClientRectInScreenCoords.top,
                 MediaSystem.ForceSoftwareRendering,
                 (int)DpiAwarenessContext,
-                _currentDpiScale,
+                CurrentDpiScale,
                 channel
                 );
 
@@ -870,7 +868,7 @@ namespace System.Windows.Interop
                 var hwndSource = HwndSource.FromHwnd(_hWnd);
                 if (hwndSource != null)
                 {
-                    var oldDpi = _currentDpiScale;
+                    var oldDpi = CurrentDpiScale;
                     var newDpi =
                         DpiScale2.FromPixelsPerInch(
                             NativeMethods.SignedLOWORD(wParam),
@@ -903,7 +901,7 @@ namespace System.Windows.Interop
 
             if (IsPerMonitorDpiScalingEnabled)
             {
-                var oldDpi = _currentDpiScale;
+                var oldDpi = CurrentDpiScale;
                 var newDpi = GetDpiScaleForWindow(_hWnd);
 
                 if (oldDpi != newDpi)
@@ -1458,26 +1456,7 @@ namespace System.Windows.Interop
                 // it's guaranteed to be a connected one (it's initialized as root already)
                 IRawElementProviderSimple el = ElementProxy.StaticWrap(peer, peer);
 
-                // The assert here is considered OK
-                // as we're assuming the WM_GETOBJECT is coming only from a PostMessage of an Hwnd.
-                // to do the post message - you needed to have Unmanaged code permission
-                //
-
-                PermissionSet unpackPermissionSet = new PermissionSet(PermissionState.None);
-                // below permissions needed to unpack an object.
-                unpackPermissionSet.AddPermission(new SecurityPermission(SecurityPermissionFlag.SerializationFormatter | SecurityPermissionFlag.UnmanagedCode | SecurityPermissionFlag.RemotingConfiguration));
-                unpackPermissionSet.AddPermission(new System.Net.DnsPermission(PermissionState.Unrestricted));
-                unpackPermissionSet.AddPermission(new System.Net.SocketPermission(PermissionState.Unrestricted));
-
-                unpackPermissionSet.Assert();
-                try
-                {
-                    return AutomationInteropProvider.ReturnRawElementProvider(handle, wparam, lparam, el);
-                }
-                finally
-                {
-                    CodeAccessPermission.RevertAll();
-                }
+                return AutomationInteropProvider.ReturnRawElementProvider(handle, wparam, lparam, el);
             }
 #pragma warning disable 56500
             catch (Exception e)
@@ -1767,9 +1746,9 @@ namespace System.Windows.Interop
         /// </summary>
         internal void OnDpiChanged(HwndDpiChangedEventArgs e)
         {
-            var oldDpi = _currentDpiScale;
+            var oldDpi = CurrentDpiScale;
             var newDpi = new DpiScale2(e.NewDpi);
-            _currentDpiScale = newDpi;
+            CurrentDpiScale = newDpi;
 
             UpdateWorldTransform(newDpi);
             PropagateDpiChangeToRootVisual(oldDpi, newDpi);
@@ -1789,9 +1768,9 @@ namespace System.Windows.Interop
         /// </summary>
         internal void OnDpiChangedAfterParent(HwndDpiChangedAfterParentEventArgs e)
         {
-            var oldDpi = _currentDpiScale;
+            var oldDpi = CurrentDpiScale;
             var newDpi = new DpiScale2(e.NewDpi);
-            _currentDpiScale = newDpi;
+            CurrentDpiScale = newDpi;
 
             UpdateWorldTransform(newDpi);
             PropagateDpiChangeToRootVisual(oldDpi, newDpi);
@@ -1817,7 +1796,7 @@ namespace System.Windows.Interop
 
             DUCE.CompositionTarget.ProcessDpiChanged(
                 _compositionTarget.GetHandle(channel),
-                _currentDpiScale,
+                CurrentDpiScale,
                 afterParent,
                 channel);
         }
@@ -2038,6 +2017,8 @@ namespace System.Windows.Interop
         /// </remarks>
         private DpiAwarenessContextValue DpiAwarenessContext { get; set; }
 
+        internal DpiScale2 CurrentDpiScale { get; private set; }
+        
         internal static bool IsPerMonitorDpiScalingSupportedOnCurrentPlatform
         {
             get
@@ -2320,7 +2301,7 @@ namespace System.Windows.Interop
                     // output is the index that will be set to the visual flags.
                     if (IsProcessPerMonitorDpiAware == true)
                     {
-                        DpiFlags dpiFlags = DpiUtil.UpdateDpiScalesAndGetIndex(_currentDpiScale.PixelsPerInchX, _currentDpiScale.PixelsPerInchY);
+                        DpiFlags dpiFlags = DpiUtil.UpdateDpiScalesAndGetIndex(CurrentDpiScale.PixelsPerInchX, CurrentDpiScale.PixelsPerInchY);
                         DpiScale newDpiScale = new DpiScale(UIElement.DpiScaleXValues[dpiFlags.Index], UIElement.DpiScaleYValues[dpiFlags.Index]);
                         RootVisual.RecursiveSetDpiScaleVisualFlags(new DpiRecursiveChangeArgs( dpiFlags, RootVisual.GetDpi(), newDpiScale));
                     }
@@ -2347,7 +2328,7 @@ namespace System.Windows.Interop
             {
                 VerifyAPIReadOnly();
                 Matrix m = Matrix.Identity;
-                m.Scale(_currentDpiScale.DpiScaleX, _currentDpiScale.DpiScaleY);
+                m.Scale(CurrentDpiScale.DpiScaleX, CurrentDpiScale.DpiScaleY);
                 return m;
             }
         }
@@ -2362,7 +2343,7 @@ namespace System.Windows.Interop
             {
                 VerifyAPIReadOnly();
                 Matrix m = Matrix.Identity;
-                m.Scale(1.0f/_currentDpiScale.DpiScaleX, 1.0f/_currentDpiScale.DpiScaleY);
+                m.Scale(1.0f/CurrentDpiScale.DpiScaleX, 1.0f/CurrentDpiScale.DpiScaleY);
                 return m;
             }
         }
@@ -2651,9 +2632,6 @@ namespace System.Windows.Interop
             /// <summary>
             ///     Handles the messages for the notification window
             /// </summary>
-            /// <SecurityNode>
-            ///     Critical: Elevates permissions via unsafe native methods
-            /// </SecurityNode>
             private IntPtr NotificationFilterMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
             {
                 IntPtr retInt = IntPtr.Zero;

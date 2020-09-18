@@ -14,7 +14,6 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Security;
-using System.Security.Permissions;
 
 using System.Globalization;
 using System.Diagnostics;
@@ -75,7 +74,7 @@ namespace Microsoft.Build.Tasks.Windows
         public MarkupCompilePass1( ) : base(SR.SharedResourceManager)
         {
             // set the source directory
-            _sourceDir = Directory.GetCurrentDirectory() + "\\";
+            _sourceDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar;
 
             _outputType = SharedStrings.WinExe;
 
@@ -277,10 +276,10 @@ namespace Microsoft.Build.Tasks.Windows
                 // Get the relative path based on sourceDir
                 _outputDir= TaskHelper.CreateFullFilePath(filePath, SourceDir);
 
-                // Make sure OutputDir always ends with '\\'.
-                if (!_outputDir.EndsWith("\\", StringComparison.Ordinal))
+                // Make sure OutputDir always ends with Path.DirectorySeparatorChar
+                if (!_outputDir.EndsWith(string.Empty + Path.DirectorySeparatorChar, StringComparison.Ordinal))
                 {
-                    _outputDir += "\\";
+                    _outputDir += Path.DirectorySeparatorChar;
                 }
             }
         }
@@ -597,7 +596,7 @@ namespace Microsoft.Build.Tasks.Windows
             get
             {
                if (_generatedCodeFiles == null)
-                   _generatedCodeFiles = new TaskItem[0];
+                   _generatedCodeFiles = Array.Empty<TaskItem>();
                return _generatedCodeFiles;
             }
 
@@ -616,7 +615,7 @@ namespace Microsoft.Build.Tasks.Windows
             get
             {
                if (_generatedBamlFiles == null)
-                   _generatedBamlFiles = new TaskItem[0];
+                   _generatedBamlFiles = Array.Empty<TaskItem>();
                return _generatedBamlFiles;
             }
 
@@ -635,7 +634,7 @@ namespace Microsoft.Build.Tasks.Windows
             get
             {
                 if (_generatedLocalizationFiles == null)
-                    _generatedLocalizationFiles = new TaskItem[0];
+                    _generatedLocalizationFiles = Array.Empty<TaskItem>();
 
                 return _generatedLocalizationFiles;
             }
@@ -1081,8 +1080,8 @@ namespace Microsoft.Build.Tasks.Windows
                 // and put the deepest directory that file is in as the new
                 // SourceDir.
                 //
-                int pathEndIndex = fullFilePath.LastIndexOf("\\", StringComparison.Ordinal);
-
+                int pathEndIndex = fullFilePath.LastIndexOf(string.Empty + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+                
                 newSourceDir = fullFilePath.Substring(0, pathEndIndex + 1);
                 newRelativeFilePath = TaskHelper.GetRootRelativePath(newSourceDir, fullFilePath);
             }
@@ -1467,7 +1466,7 @@ namespace Microsoft.Build.Tasks.Windows
 
                     codeItem = new TaskItem();
                     codeItem.ItemSpec = genLangFilePath;
-
+                    
                     outputCodeFileList.Add(codeItem);
 
                     Log.LogMessageFromResources(MessageImportance.Low, SRID.GeneratedCodeFile, codeItem.ItemSpec);

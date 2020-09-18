@@ -10,12 +10,8 @@ Follow the [Building CoreFX on Windows](https://github.com/dotnet/corefx/blob/ma
 
 WPF requires the following workloads and  components be selected when installing Visual Studio:
 
-* Required Workloads:
-  * .NET Desktop Development
-  * Desktop development with C++
-* Required Individual Components:
-  * C++/CLI support
-  * Windows 10 SDK
+* Required Workloads: [wpf.vsconfig](wpf.vsconfig)
+    *  Also see [Import or export installation configurations](https://docs.microsoft.com/en-us/visualstudio/install/import-export-installation-configurations?view=vs-2019)
 
 ## Workflow
 
@@ -49,7 +45,7 @@ If there were any failures, you can cd into $(RepoRoot)\artifacts\test\$(Configu
 
 *Note: To run a specific test, you can pass the name of the test like this: `/name=DrtXaml`. The names of these tests are contained in DrtList.xml.*
 
-**NOTE: This requires being run from an admin window at the moment. Removing this restriction is tracked by https://github.com/dotnet/wpf/issues/816. **
+*NOTE: This requires being run from an admin window at the moment. Removing this restriction is tracked by https://github.com/dotnet/wpf/issues/816.*
 
 ### Testing Locally built WPF assemblies (excluding PresentationBuildTasks)
 This section of guide is intended to discuss the different approaches for ad-hoc testing of WPF assemblies,
@@ -112,8 +108,7 @@ installed, we can then simply reference those local binaries directly from the p
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="$(WpfRepoRoot)\artifacts\packaging\$(WpfConfig)\Microsoft.DotNet.Wpf.GitHub\ref\netcoreapp3.0\*.dll" Private="false" />
-    <ReferenceCopyLocalPaths Include="$(WpfRepoRoot)\artifacts\packaging\$(WpfConfig)\Microsoft.DotNet.Wpf.GitHub\lib\netcoreapp3.0\*.dll" />
+    <Reference Include="$(WpfRepoRoot)\artifacts\packaging\$(WpfConfig)\Microsoft.DotNet.Wpf.GitHub\lib\netcoreapp3.0\*.dll" />
     <ReferenceCopyLocalPaths Include="$(WpfRepoRoot)\artifacts\packaging\$(WpfConfig)\Microsoft.DotNet.Wpf.GitHub\lib\$(RuntimeIdentifier)\*.dll" />
   </ItemGroup>
 ```
@@ -157,10 +152,12 @@ If you can build directly from source, and want to test your application against
 ```xml
  <PropertyGroup>
     <MicrosoftWindowsDesktopAppVersion>3.0.0-preview5-27619-18</MicrosoftWindowsDesktopAppVersion>
- <PropertyGroup>
- <FrameworkReference Update="Microsoft.WindowsDesktop.App">
-    <TargetingPackVersion>$(MicrosoftWindowsDesktopAppVersion)</TargetingPackVersion>
- </FrameworkReference>
+ </PropertyGroup>
+ <ItemGroup>
+   <FrameworkReference Update="Microsoft.WindowsDesktop.App">
+      <TargetingPackVersion>$(MicrosoftWindowsDesktopAppVersion)</TargetingPackVersion>
+   </FrameworkReference>
+ </ItemGroup>
 ```
 
 If you don't have the ability to build from source, you can update the *.runtimeconfig.json file located next to the executable to pick up your version:

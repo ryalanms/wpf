@@ -17,7 +17,6 @@ using System.Diagnostics;
 using System.Security;
 using MS.Internal;
 using MS.Internal.PresentationCore;                        // SecurityHelper
-using System.Security.Permissions;
 using MS.Win32;
 
 namespace System.Windows.Input
@@ -134,7 +133,6 @@ namespace System.Windows.Input
         // This is the notification of the changes of the result string and the composition string.
         public void OnTransitoryExtensionUpdated(UnsafeNativeMethods.ITfContext context, int ecReadOnly, UnsafeNativeMethods.ITfRange rangeResult, UnsafeNativeMethods.ITfRange rangeComposition, out bool fDeleteResultRange)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             fDeleteResultRange = true;
 
@@ -273,7 +271,6 @@ namespace System.Windows.Input
         { 
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
 
                 UnsafeNativeMethods.ITfDocumentMgr doc;
                 UnsafeNativeMethods.ITfCompartmentMgr compartmentMgr;

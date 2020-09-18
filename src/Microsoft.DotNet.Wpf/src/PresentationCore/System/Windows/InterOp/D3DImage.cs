@@ -22,7 +22,6 @@ using System.Windows.Media;
 using System.Windows.Media.Composition;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Security.Permissions;
 using System.Security;
 using System.Threading;
 
@@ -62,14 +61,13 @@ namespace System.Windows.Interop
         /// </summary>
         public D3DImage() : this(96.0, 96.0)
         {
-}
+        }
 
         /// <summary>
         ///     DPI constructor
         /// </summary>
         public D3DImage(double dpiX, double dpiY)
         {
-            SecurityHelper.DemandUnmanagedCode();
             
             if (dpiX < 0)
             {
@@ -144,7 +142,6 @@ namespace System.Windows.Interop
         /// </summary>
         public void SetBackBuffer(D3DResourceType backBufferType, IntPtr backBuffer, bool enableSoftwareFallback)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             WritePreamble();
             
@@ -537,7 +534,6 @@ namespace System.Windows.Interop
         /// </Summary>
         protected internal virtual BitmapSource CopyBackBuffer()
         {
-            SecurityHelper.DemandUnmanagedCode();
             
             BitmapSource copy = null;
             

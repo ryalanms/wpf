@@ -22,7 +22,6 @@ using MS.Internal.Security.RightsManagement;
 using SecurityHelper=MS.Internal.WindowsBase.SecurityHelper; 
 using MS.Internal;
 using MS.Internal.WindowsBase;
-using System.Security.Permissions;
 
 namespace System.Security.RightsManagement 
 {
@@ -41,7 +40,6 @@ namespace System.Security.RightsManagement
         public static SecureEnvironment Create(string applicationManifest,
                                                ContentUser user)
         {
-            SecurityHelper.DemandRightsManagementPermission();
     
             return CriticalCreate(applicationManifest, user);
         }
@@ -64,7 +62,6 @@ namespace System.Security.RightsManagement
                                                                                         AuthenticationType authentication, 
                                                                                         UserActivationMode userActivationMode)
         {
-            SecurityHelper.DemandRightsManagementPermission();
 
             return CriticalCreate(applicationManifest, 
                                             authentication,
@@ -77,7 +74,6 @@ namespace System.Security.RightsManagement
         /// </summary>
         public static bool IsUserActivated(ContentUser user)
         {
-            SecurityHelper.DemandRightsManagementPermission();
         
             if (user == null)
             {
@@ -103,7 +99,6 @@ namespace System.Security.RightsManagement
         /// </summary>
         public static void RemoveActivatedUser(ContentUser user)
         {
-            SecurityHelper.DemandRightsManagementPermission();
             
             if (user == null)
             {
@@ -147,7 +142,6 @@ namespace System.Security.RightsManagement
         /// </summary>
         static public  ReadOnlyCollection<ContentUser>  GetActivatedUsers()
         {
-            SecurityHelper.DemandRightsManagementPermission();
             
             //build user with the default authentication type and a default name 
             // neither name not authentication type is important in this case 
@@ -196,7 +190,6 @@ namespace System.Security.RightsManagement
         /// </summary>
         public void Dispose()
         {              
-            SecurityHelper.DemandRightsManagementPermission();        
             
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -209,7 +202,6 @@ namespace System.Security.RightsManagement
         {
             get
             {
-                SecurityHelper.DemandRightsManagementPermission();
             
                 CheckDisposed();
                 return _user;
@@ -223,7 +215,6 @@ namespace System.Security.RightsManagement
         {
             get
             {
-                SecurityHelper.DemandRightsManagementPermission();
             
                 CheckDisposed();
                 return _applicationManifest;

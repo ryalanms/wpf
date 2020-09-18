@@ -17,7 +17,6 @@ using System;
 using MS.Internal;
 using MS.Internal.PresentationCore;
 using System.Security;
-using System.Security.Permissions;
 using System.Collections;
 using System.IO;
 using System.Text;
@@ -525,7 +524,10 @@ namespace MS.Win32.PresentationCore
             [DllImport(DllImport.MilCore, EntryPoint = "MILAddRef")]
             internal static extern UInt32 AddRef(SafeReversePInvokeWrapper pIUnknown);
 
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
             [DllImport(DllImport.MilCore, EntryPoint = "MILRelease"), ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported.  
+
             internal static extern int Release(IntPtr pIUnkown);
 
             internal static void ReleaseInterface(ref IntPtr ptr)

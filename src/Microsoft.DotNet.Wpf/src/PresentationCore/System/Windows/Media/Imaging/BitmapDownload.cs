@@ -20,7 +20,6 @@ using System.Diagnostics;
 using System.Windows.Media;
 using System.Globalization;
 using System.Security;
-using System.Security.Permissions;
 using System.Runtime.InteropServices;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Composition;
@@ -135,47 +134,39 @@ namespace System.Windows.Media.Imaging
             string cacheFolder = MS.Win32.WinInet.InternetCacheFolder.LocalPath;
             bool passed = false;
 
-            new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); // BlessedAssert
+            // Get the file path 
+            StringBuilder tmpFileName = new StringBuilder(NativeMethods.MAX_PATH);
+            MS.Win32.UnsafeNativeMethods.GetTempFileName(cacheFolder, "WPF", 0, tmpFileName);
+              
             try
             {
-                // Get the file path 
-                StringBuilder tmpFileName = new StringBuilder(NativeMethods.MAX_PATH);
-                MS.Win32.UnsafeNativeMethods.GetTempFileName(cacheFolder, "WPF", 0, tmpFileName);
-              
-                try
-                {
-                    string pathToUse = tmpFileName.ToString();
-                    SafeFileHandle fileHandle = MS.Win32.UnsafeNativeMethods.CreateFile(
-                        pathToUse, 
-                        NativeMethods.GENERIC_READ | NativeMethods.GENERIC_WRITE, /* dwDesiredAccess */
-                        0,                                                        /* dwShare */
-                        null,                                                     /* lpSecurityAttributes */
-                        NativeMethods.CREATE_ALWAYS,                              /* dwCreationDisposition */
-                        NativeMethods.FILE_ATTRIBUTE_TEMPORARY | 
-                        NativeMethods.FILE_FLAG_DELETE_ON_CLOSE,                  /* dwFlagsAndAttributes */
-                        IntPtr.Zero                                               /* hTemplateFile */
-                        );
+                string pathToUse = tmpFileName.ToString();
+                SafeFileHandle fileHandle = MS.Win32.UnsafeNativeMethods.CreateFile(
+                    pathToUse, 
+                    NativeMethods.GENERIC_READ | NativeMethods.GENERIC_WRITE, /* dwDesiredAccess */
+                    0,                                                        /* dwShare */
+                    null,                                                     /* lpSecurityAttributes */
+                    NativeMethods.CREATE_ALWAYS,                              /* dwCreationDisposition */
+                    NativeMethods.FILE_ATTRIBUTE_TEMPORARY | 
+                    NativeMethods.FILE_FLAG_DELETE_ON_CLOSE,                  /* dwFlagsAndAttributes */
+                    IntPtr.Zero                                               /* hTemplateFile */
+                    );
 
-                    if (fileHandle.IsInvalid)
-                    {
-                        throw new Win32Exception();
-                    }
-                    
-                    entry.outputStream = new FileStream(fileHandle, FileAccess.ReadWrite);
-                    entry.streamPath = pathToUse;
-                    passed = true;
-                }
-                catch(Exception e)
+                if (fileHandle.IsInvalid)
                 {
-                    if (CriticalExceptions.IsCriticalException(e))
-                    {
-                        throw;
-                    }
+                    throw new Win32Exception();
                 }
+                    
+                entry.outputStream = new FileStream(fileHandle, FileAccess.ReadWrite);
+                entry.streamPath = pathToUse;
+                passed = true;
             }
-            finally
+            catch(Exception e)
             {
-                SecurityPermission.RevertAssert();
+                if (CriticalExceptions.IsCriticalException(e))
+                {
+                    throw;
+                }
             }
 
             if (!passed)
@@ -199,41 +190,10 @@ namespace System.Windows.Media.Imaging
 
             if (stream == null)
             {
-                bool fElevate = false;
-                if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                entry.webRequest = WpfWebRequestHelper.CreateRequest(uri);
+                if (uriCachePolicy != null)
                 {
-                    SecurityHelper.BlockCrossDomainForHttpsApps(uri);
-
-                    // In this case we first check to see if the consumer has media permissions for
-                    // safe media (Site of Origin + Cross domain), if it
-                    // does we assert and run the code that requires the assert
-                    if (SecurityHelper.CallerHasMediaPermission(MediaPermissionAudio.NoAudio,
-                                                                MediaPermissionVideo.NoVideo,
-                                                                MediaPermissionImage.SafeImage))
-                    {
-                        fElevate = true;
-                    }
-                }
-
-                // This is the case where we are accessing an http image from an http site and we have media permission
-                if (fElevate)
-                {
-                    (new WebPermission(NetworkAccess.Connect, BindUriHelper.UriToString(uri))).Assert(); // BlessedAssert
-                }
-                try
-                {
-                    entry.webRequest = WpfWebRequestHelper.CreateRequest(uri);
-                    if (uriCachePolicy != null)
-                    {
-                        entry.webRequest.CachePolicy = uriCachePolicy;
-                    }
-                }
-                finally
-                {
-                    if(fElevate)
-                    {
-                        WebPermission.RevertAssert();
-                    }
+                    entry.webRequest.CachePolicy = uriCachePolicy;
                 }
 
                 entry.webRequest.BeginGetResponse(_responseCallback, entry);

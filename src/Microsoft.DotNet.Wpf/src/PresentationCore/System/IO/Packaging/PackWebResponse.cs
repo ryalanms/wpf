@@ -23,7 +23,6 @@ using System.Globalization;             // for CultureInfo
 using MS.Internal.PresentationCore;     // for ExceptionStringTable
 using MS.Internal.IO.Packaging;              // for ResponseStream
 using System.Security;
-using System.Security.Permissions;
 using System.Windows.Navigation;
 using MS.Utility;
 using MS.Internal;
@@ -251,7 +250,8 @@ namespace System.IO.Packaging
                         throw new WebException(SR.Get(SRID.WebResponsePartNotFound));
 
                     PackagePart p = c.GetPart(_partName);
-                    Stream s = p.GetStream(FileMode.Open, FileAccess.Read);
+
+                    Stream s = p.GetSeekableStream(FileMode.Open, FileAccess.Read);
 
                     _mimeType = new MS.Internal.ContentType(p.ContentType);      // save this for use in ContentType property - may still be null
                     _fullStreamLength = s.Length;   // just this stream
@@ -649,7 +649,7 @@ namespace System.IO.Packaging
                                         System.Threading.Thread.CurrentThread.ManagedThreadId + ": " +
                                         "CachedResponse - Getting part stream ");
 #endif
-                            Stream s = p.GetStream(FileMode.Open, FileAccess.Read);
+                            Stream s = p.GetSeekableStream(FileMode.Open, FileAccess.Read);
 
                             // Unless package is thread-safe, wrap the returned stream so that
                             // package access is serialized

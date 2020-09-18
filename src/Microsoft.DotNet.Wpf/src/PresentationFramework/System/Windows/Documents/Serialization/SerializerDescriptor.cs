@@ -17,7 +17,6 @@ namespace System.Windows.Documents.Serialization
     using System.Reflection;
     using System.Windows;
     using System.Security;
-    using System.Security.Permissions;
     using System.Diagnostics.CodeAnalysis;
     using Microsoft.Win32;
     using MS.Internal.PresentationFramework;
@@ -66,7 +65,6 @@ namespace System.Windows.Documents.Serialization
             ISerializerFactory  factoryInstance
             )
         {
-            SecurityHelper.DemandPlugInSerializerPermissions();
 
             if (factoryInstance == null)
             {
@@ -121,7 +119,6 @@ namespace System.Windows.Documents.Serialization
         [SuppressMessage("Microsoft.Security", "CA2001:AvoidCallingProblematicMethods")]
         internal ISerializerFactory CreateSerializerFactory()
         {
-            SecurityHelper.DemandPlugInSerializerPermissions();
 
             string assemblyPath = AssemblyPath;
 
@@ -161,7 +158,6 @@ namespace System.Windows.Documents.Serialization
         /// </remarks>
         internal static SerializerDescriptor CreateFromRegistry(RegistryKey plugIns, string keyName)
         {
-            SecurityHelper.DemandPlugInSerializerPermissions();
 
             SerializerDescriptor sd = new SerializerDescriptor();
 

@@ -4,7 +4,6 @@
 
 using System.Diagnostics;
 using System.Reflection;
-using System.Security.Permissions;
 using System.Security;
 using System;
 using MS.Internal; 
@@ -45,11 +44,6 @@ namespace MS.Internal
         // If you want to enable trace tags without recompiling. This is a good place to put a break point
         // during start-up.
 
-        [SecurityCritical
-#if DEBUG        
-        ,SecurityTreatAsSafe
-#endif        
-        ]
         static MediaTrace()
         {
             // NodeFlag.Enable();
@@ -70,26 +64,9 @@ namespace MS.Internal
             // QueueItems.Enable();
             Statistics.Enable();
 
-#if !DEBUG
-            // if somehow this code gets enabled in retail. Do a demand. 
-            //
-            SecurityHelper.DemandUnmanagedCode(); 
-#endif
-
 #if DEBUG
-            //
-            // We are asserting on startup path. Very bad from a perf perspective.  
-            // However considered ok for now as this is just done in debug code. 
-            // 
-            new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); // BlessedAssert: 
-            try
-            {
-                System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
-            }
-            finally
-            {
-                CodeAccessPermission.RevertAssert(); 
-            }
+
+            System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 #endif            
         }
     

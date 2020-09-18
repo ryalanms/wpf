@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 using System.Resources;
 using System.IO;
 using System.Security;
-using System.Security.Permissions;
 using SecurityHelper=MS.Internal.SecurityHelper;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
@@ -180,8 +179,6 @@ namespace System.Windows.Input
 
         private void LoadFromFile(string fileName)
         {
-            SecurityHelper.DemandFileIOReadPermission(fileName);
-
             // Load a Custom Cursor
             _cursorHandle = UnsafeNativeMethods.LoadImageCursor(IntPtr.Zero,
                                                                 fileName,

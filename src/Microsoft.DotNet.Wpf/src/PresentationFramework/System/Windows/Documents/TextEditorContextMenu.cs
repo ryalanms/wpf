@@ -17,7 +17,6 @@ namespace System.Windows.Documents
     using System.Windows.Threading;
     using System.Runtime.InteropServices;
     using System.Security;
-    using System.Security.Permissions;
     using MS.Win32;
     using System.Windows.Interop;
 
@@ -164,7 +163,7 @@ namespace System.Windows.Documents
             {
                 // It's a default null, so spin up a temporary ContextMenu now.
                 contextMenu = new EditorContextMenu();
-                ((EditorContextMenu)contextMenu).AddMenuItems(This, e.UserInitiated);
+                ((EditorContextMenu)contextMenu).AddMenuItems(This);
             }
             contextMenu.Placement = PlacementMode.RelativePoint;
             contextMenu.PlacementTarget = This.UiScope;
@@ -303,15 +302,7 @@ namespace System.Windows.Documents
             if (window != null)
             {
                 IntPtr hwnd = IntPtr.Zero;
-                new UIPermission(UIPermissionWindow.AllWindows).Assert(); // BlessedAssert
-                try
-                {
-                    hwnd = window.Handle;
-                }
-                finally
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
+                hwnd = window.Handle;
 
                 NativeMethods.RECT rc = new NativeMethods.RECT(0, 0, 0, 0);
                 SafeNativeMethods.GetClientRect(new HandleRef(null, hwnd), ref rc);
@@ -431,15 +422,8 @@ namespace System.Windows.Documents
         {
             // Initialize the context menu.
             // Creates a new instance.
-            internal void AddMenuItems(TextEditor textEditor, bool userInitiated)
+            internal void AddMenuItems(TextEditor textEditor)
             {
-                // create a special menu item for paste which only works for user initiated paste
-                // within the confines of partial trust this cannot be done programmatically
-                if (userInitiated == false)
-                {
-                    SecurityHelper.DemandAllClipboardPermission();
-                }
-
                 if (!textEditor.IsReadOnly)
                 {
                     if (AddReconversionItems(textEditor))
@@ -452,7 +436,7 @@ namespace System.Windows.Documents
                 {
                     AddSeparator();
                 }
-                AddClipboardItems(textEditor, userInitiated);
+                AddClipboardItems(textEditor);
             }
             // Finalizer release the candidate list if it remains.
             ~EditorContextMenu()
@@ -603,7 +587,7 @@ namespace System.Windows.Documents
 
             // Appends clipboard related items.
             // Returns false if no items are added.
-            private bool AddClipboardItems(TextEditor textEditor, bool userInitiated)
+            private bool AddClipboardItems(TextEditor textEditor)
             {
                 MenuItem menuItem;
 
@@ -619,12 +603,6 @@ namespace System.Windows.Documents
                 menuItem.Command = ApplicationCommands.Copy;
                 this.Items.Add(menuItem);
 
-                // create a special menu item for paste which only works for user initiated paste
-                // within the confines of partial trust this cannot be done programmatically
-                if (userInitiated == false)
-                {
-                    SecurityHelper.DemandAllClipboardPermission();
-                }
                 menuItem = new EditorMenuItem();
                 menuItem.Header = SR.Get(SRID.TextBox_ContextMenu_Paste);
                 menuItem.CommandTarget = textEditor.UiScope;

@@ -4,7 +4,6 @@
 
 using System;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using MS.Win32;
 using System.Windows;
@@ -32,7 +31,7 @@ namespace System.Windows.Input
         ///     The mode in which the input is being provided.
         /// </param>
         /// <param name="timestamp">
-        ///     The time when the input occured.
+        ///     The time when the input occurred.
         /// </param>
         /// <param name="actions">
         ///     The set of actions being reported.

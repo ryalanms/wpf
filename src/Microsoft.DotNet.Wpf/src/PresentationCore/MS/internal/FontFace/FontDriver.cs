@@ -10,7 +10,6 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using System.Security;
 using System.Text;
 using System.Windows;
@@ -258,8 +257,6 @@ namespace MS.Internal.FontFace
         /// </summary>
         internal byte[] ComputeFontSubset(ICollection<ushort> glyphs)
         {
-            SecurityHelper.DemandUnmanagedCode();
-
             int fileSize = _fileStream.Size;
             unsafe
             {

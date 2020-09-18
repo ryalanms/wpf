@@ -123,18 +123,6 @@ namespace MS.Internal
             return new MemoryStream(piComment.Value);
         }
 
-        // return a new safe-printing permission
-        internal override CodeAccessPermission NewSafePrintingPermission()
-        {
-            return new PrintingPermission(PrintingPermissionLevel.SafePrinting);
-        }
-
-        // return a new default-printing permission
-        internal override CodeAccessPermission NewDefaultPrintingPermission()
-        {
-            return new PrintingPermission(PrintingPermissionLevel.DefaultPrinting);
-        }
-
         // write a metafile stream to the output stream in PNG format
         internal override void SaveMetafileToImageStream(MemoryStream metafileStream, Stream imageStream)
         {
@@ -191,27 +179,11 @@ namespace MS.Internal
             formatConverter.DestinationFormat = System.Windows.Media.PixelFormats.Bgr32;
             formatConverter.EndInit();
 
-            CodeAccessPermission mediaAccessPermission = SecurityHelper.CreateMediaAccessPermission(null);
-
-            if (mediaAccessPermission != null)
-            {
-                mediaAccessPermission.Assert(); //BlessedAssert
-            }
-            try
-            {
-                formatConverter.CopyPixels(
-                            new Int32Rect(0, 0, imageWidth, imageHeight),
-                            bmData.Scan0,
-                            bmData.Stride * (bmData.Height - 1) + (bmData.Width * 4),
-                            bmData.Stride);
-            }
-            finally
-            {
-                if (mediaAccessPermission != null)
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
-            }
+            formatConverter.CopyPixels(
+                        new Int32Rect(0, 0, imageWidth, imageHeight),
+                        bmData.Scan0,
+                        bmData.Stride * (bmData.Height - 1) + (bmData.Width * 4),
+                        bmData.Stride);
 
             bitmapFinal.UnlockBits(bmData);
 

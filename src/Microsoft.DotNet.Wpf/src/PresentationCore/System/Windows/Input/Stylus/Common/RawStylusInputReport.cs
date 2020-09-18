@@ -9,7 +9,6 @@ using System.Windows.Threading;
 using System.Windows.Media;
 using System.Windows.Input.StylusPlugIns;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal.PresentationCore;                        // SecurityHelper
 using MS.Internal;
 
@@ -157,7 +156,7 @@ namespace System.Windows.Input
         ///     The mode in which the input is being provided.
         /// </param>
         /// <param name="timestamp">
-        ///     The time when the input occured.
+        ///     The time when the input occurred.
         /// </param>
         /// <param name="inputSource">
         ///     The PresentationSource over which the stylus moved.
@@ -213,7 +212,7 @@ namespace System.Windows.Input
         ///     The mode in which the input is being provided.
         /// </param>
         /// <param name="timestamp">
-        ///     The time when the input occured.
+        ///     The time when the input occurred.
         /// </param>
         /// <param name="inputSource">
         ///     The PresentationSource over which the stylus moved.

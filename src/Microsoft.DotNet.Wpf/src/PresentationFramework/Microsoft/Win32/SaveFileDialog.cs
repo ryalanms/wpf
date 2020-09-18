@@ -23,7 +23,6 @@ namespace Microsoft.Win32
     using System.Collections.Generic;
     using System.IO;
     using System.Security;
-    using System.Security.Permissions;
     using System.Windows;
 
     /// <summary>
@@ -73,11 +72,10 @@ namespace Microsoft.Win32
         /// </Remarks>
         public Stream OpenFile()
         {
-            SecurityHelper.DemandUIWindowPermission();
 
             // Extract the first filename from the FileNamesInternal list.
             // We can do this safely because FileNamesInternal never returns
-            // null - if _fileNames is null, FileNamesInternal returns new string[0];
+            // null - if _fileNames is null, FileNamesInternal returns Array.Empty<string>();
             string filename = FileNamesInternal.Length > 0 ? FileNamesInternal[0] : null;
 
             // If we got an empty or null filename, throw an exception to
@@ -88,10 +86,6 @@ namespace Microsoft.Win32
             }
 
             // Create a new FileStream from the file and return it.
-            // in this case I deviate from the try finally protocol because this is the last statement and the permission is reverted
-            // when the function exits
-            (new FileIOPermission(FileIOPermissionAccess.Append | FileIOPermissionAccess.Read | FileIOPermissionAccess.Write,
-                                  filename)).Assert();//BlessedAssert
             return new FileStream(filename, FileMode.Create, FileAccess.ReadWrite);
         }
 
@@ -107,7 +101,6 @@ namespace Microsoft.Win32
         /// </Remarks>
         public override void Reset()
         {
-            SecurityHelper.DemandUIWindowPermission();
 
             // it is VERY important that the base.reset() call remain here
             // and be located at the top of this function.
@@ -150,7 +143,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUIWindowPermission();
 
                 SetOption(NativeMethods.OFN_CREATEPROMPT, value);
             }
@@ -175,7 +167,6 @@ namespace Microsoft.Win32
             }
             set
             {
-                SecurityHelper.DemandUIWindowPermission();
 
                 SetOption(NativeMethods.OFN_OVERWRITEPROMPT, value);
             }
@@ -232,19 +223,8 @@ namespace Microsoft.Win32
             {
                 return false;
             }
-
-            // we use unrestricted file io because to extract the path from the file name
-            // we need to assert path discovery except we do not know the path            
-            bool fExist;
-            (new FileIOPermission(PermissionState.Unrestricted)).Assert();//BlessedAssert
-            try
-            {
-                fExist = File.Exists(Path.GetFullPath(fileName));
-            }
-            finally
-            {
-                FileIOPermission.RevertAssert();
-            }
+         
+            bool fExist = File.Exists(Path.GetFullPath(fileName));
 
 
             // If the file does not exist, check if OFN_CREATEPROMPT is
@@ -355,10 +335,6 @@ namespace Microsoft.Win32
 
         internal override IFileDialog CreateVistaDialog()
         {
-            SecurityHelper.DemandUIWindowPermission();
-
-            new SecurityPermission(PermissionState.Unrestricted).Assert();
-
             return (IFileDialog)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID.FileSaveDialog)));
         }
 

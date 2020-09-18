@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Security;
-using System.Security.Permissions;
 
 namespace System.Windows.Threading
 {
@@ -21,7 +20,6 @@ namespace System.Windows.Threading
         ///     <P/>
         ///     Note also that this event could come before the last operation is
         ///     invoked, because that is when we determine that the queue is empty.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public event EventHandler DispatcherInactive
         {
@@ -52,7 +50,6 @@ namespace System.Windows.Threading
         ///     <P/>
         ///     Note that any thread can post operations, so this event can be
         ///     raised by any thread.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public event DispatcherHookEventHandler OperationPosted
         {
@@ -83,7 +80,6 @@ namespace System.Windows.Threading
         ///     <P/>
         ///     Note that any thread can post operations, so this event can be
         ///     raised by any thread.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public event DispatcherHookEventHandler OperationStarted
         {
@@ -114,7 +110,6 @@ namespace System.Windows.Threading
         ///
         ///     Note that this event will be raised by the dispatcher thread after
         ///     the operation has completed.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public event DispatcherHookEventHandler OperationCompleted
         {
@@ -140,7 +135,6 @@ namespace System.Windows.Threading
         /// <remarks>
         ///     Note that any thread can change the priority of operations,
         ///     so this event can be raised by any thread.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public event DispatcherHookEventHandler OperationPriorityChanged
         {
@@ -166,7 +160,6 @@ namespace System.Windows.Threading
         /// <remarks>
         ///     Note that any thread can abort an operation, so this event
         ///     can be raised by any thread.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public event DispatcherHookEventHandler OperationAborted
         {

@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Windows.Media;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using MS.Internal.PresentationCore;                        // SecurityHelper
 
@@ -107,10 +106,7 @@ namespace System.Windows.Input.StylusPlugIns
         /// </remarks>
         /// <param name="stylusPoints">stylusPoints</param>
         public void SetStylusPoints(StylusPointCollection stylusPoints)
-        {
-            // To modify the points we require Unmanaged code permission.
-            SecurityHelper.DemandUnmanagedCode();
-            
+        {            
             if (null == stylusPoints)
             {
                 throw new ArgumentNullException("stylusPoints");

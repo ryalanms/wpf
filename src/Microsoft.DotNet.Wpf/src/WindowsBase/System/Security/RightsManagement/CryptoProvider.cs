@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows;
 using System.Collections.ObjectModel;
 using MS.Internal.Security.RightsManagement; 
@@ -54,7 +53,6 @@ namespace System.Security.RightsManagement
         /// </summary>        
         public void Dispose()
         {
-            SecurityHelper.DemandRightsManagementPermission();            
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -72,7 +70,6 @@ namespace System.Security.RightsManagement
         /// </summary> 
         public byte[] Encrypt(byte[] clearText)
         {
-            SecurityHelper.DemandRightsManagementPermission();
             CheckDisposed();
             
             if (clearText == null)
@@ -132,7 +129,6 @@ namespace System.Security.RightsManagement
         /// </summary>    
         public byte[] Decrypt(byte[] cryptoText)
         {
-            SecurityHelper.DemandRightsManagementPermission();
             CheckDisposed();
         
             if (cryptoText == null)
@@ -245,7 +241,6 @@ namespace System.Security.RightsManagement
         {
             get
             {
-                SecurityHelper.DemandRightsManagementPermission();
                 CheckDisposed();
             
                 if (_blockSize ==0)
@@ -264,7 +259,6 @@ namespace System.Security.RightsManagement
         {
             get
             {
-                SecurityHelper.DemandRightsManagementPermission();
                 CheckDisposed();
             
                 // convention is to return 1 for stream ciphers
@@ -285,7 +279,6 @@ namespace System.Security.RightsManagement
         {
             get
             {
-                SecurityHelper.DemandRightsManagementPermission();
                 CheckDisposed();
 
                 if (_boundGrantReadOnlyCollection == null)
@@ -319,7 +312,6 @@ namespace System.Security.RightsManagement
         {
             get
             {
-                SecurityHelper.DemandRightsManagementPermission();
                 CheckDisposed();
 
                 return (!EncryptorHandle.IsInvalid);
@@ -335,7 +327,6 @@ namespace System.Security.RightsManagement
         {
             get
             {
-                SecurityHelper.DemandRightsManagementPermission();
                 CheckDisposed();
 
                 return (!DecryptorHandle.IsInvalid);

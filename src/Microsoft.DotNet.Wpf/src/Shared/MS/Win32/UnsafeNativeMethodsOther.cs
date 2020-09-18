@@ -13,7 +13,6 @@ namespace MS.Win32
     using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
     using System;
-    using System.Security.Permissions;
     using System.Collections;
     using System.IO;
     using System.Text;
@@ -171,7 +170,9 @@ namespace MS.Win32
         /// </summary>
         /// <param name="hMem"></param>
         /// <returns></returns>
+        #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
         [DllImport(ExternDll.Kernel32, SetLastError = true), ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
         internal static extern IntPtr LocalFree(IntPtr hMem);
 
 #if BASE_NATIVEMETHODS
@@ -388,15 +389,7 @@ namespace MS.Win32
 
             protected override bool ReleaseHandle()
             {
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert();
-                try
-                {
-                    return CloseHandleNoThrow(new HandleRef(null, handle));
-                }
-                finally
-                {
-                    SecurityPermission.RevertAssert();
-                }
+                return CloseHandleNoThrow(new HandleRef(null, handle));
             }
         }
         internal sealed class SafeViewOfFileHandle : SafeHandleZeroOrMinusOneIsInvalid
@@ -414,15 +407,7 @@ namespace MS.Win32
 
             override protected bool ReleaseHandle()
             {
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert();
-                try
-                {
-                    return UnsafeNativeMethods.UnmapViewOfFileNoThrow(new HandleRef(null, handle));
-                }
-                finally
-                {
-                    SecurityPermission.RevertAssert();
-                }
+                return UnsafeNativeMethods.UnmapViewOfFileNoThrow(new HandleRef(null, handle));
             }
         }
 
@@ -653,7 +638,9 @@ namespace MS.Win32
             }
         }
         [DllImport(ExternDll.User32, EntryPoint = "GetIconInfo", CharSet = CharSet.Auto, SetLastError = true)]
+        #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+        #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
         private static extern bool GetIconInfoImpl(HandleRef hIcon, [Out] ICONINFO_IMPL piconinfo);
 
         [StructLayout(LayoutKind.Sequential)]
@@ -677,7 +664,9 @@ namespace MS.Win32
             piconinfo = new NativeMethods.ICONINFO();
             ICONINFO_IMPL iconInfoImpl = new ICONINFO_IMPL();
 
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             SRCS.RuntimeHelpers.PrepareConstrainedRegions(); // Mark the following as special
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             try
             {
                 // Intentionally empty

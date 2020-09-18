@@ -18,7 +18,6 @@ using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security;
-using System.Security.Permissions;
 using Microsoft.Win32;
 using System.IO.Packaging;
 using System.Windows;
@@ -58,7 +57,6 @@ namespace MS.Internal.AppModel
             launched = SafeLaunchBrowserOnlyIfPossible(originatingUri, destinationUri, fIsTopLevel);
             if (launched == LaunchResult.NotLaunched)
             {
-                SecurityHelper.DemandUnmanagedCode();
                 UnsafeLaunchBrowser(destinationUri);
             }
         }
@@ -101,8 +99,7 @@ namespace MS.Internal.AppModel
             //
             // The check of IsInitialViewerNavigation is necessary because viewer applications will probably
             // need to call Navigate on the URI they receive, but we want them to be able to do it in partial trust.
-            if ((!BrowserInteropHelper.IsInitialViewerNavigation &&
-                MS.Internal.PresentationFramework.SecurityHelper.CallerHasUserInitiatedNavigationPermission()) &&
+            if (!BrowserInteropHelper.IsInitialViewerNavigation &&
                   ((fIsTopLevel && isKnownScheme) || fIsMailTo))
             {
                 if (!isKnownScheme && fIsMailTo) // unnecessary if - but being paranoid. 
@@ -239,26 +236,7 @@ namespace MS.Internal.AppModel
                 //
                 // For a - we will say there is no cross-domain check.     
                 //     b - we'll assume InternetZone, and use Source. 
-
-                bool fTrusted = SecurityHelper.CheckUnmanagedCodePermission();
-
-                if (fTrusted)
-                {
-                    return LaunchResult.Launched;
-                }
-                else
-                {
-                    //
-                    //  If we didn't get a SourceUri, we'll assume internet zone. 
-                    //  And use Source for the uri of origin. 
-                    //  
-                    //  This isn't quite right - but the sourceUri is only used to show a message to the user. 
-                    //  Worse case is confusing user experience. ( this uri is not used in the elevation determination). 
-                    //
-
-                    sourceZone = NativeMethods.URLZONE_INTERNET;
-                    sourceUri = originatingUri;
-                }
+                return LaunchResult.Launched;
             }
 
             // <Notes from Trident>
@@ -368,22 +346,15 @@ namespace MS.Internal.AppModel
             unsafe
             {
                 String targetString = BindUriHelper.UriToString(target);
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); // BlessedAssert: 
-                try
-                {
-                    _secMgr.ProcessUrlAction(targetString,
-                                              NativeMethods.URLACTION_FEATURE_ZONE_ELEVATION,
-                                              (byte*)&policy,
-                                              Marshal.SizeOf(typeof(int)),
-                                              null,
-                                              0,
-                                              NativeMethods.PUAF_NOUI,
-                                              0);
-                }
-                finally
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
+
+                _secMgr.ProcessUrlAction(targetString,
+                                            NativeMethods.URLACTION_FEATURE_ZONE_ELEVATION,
+                                            (byte*)&policy,
+                                            Marshal.SizeOf(typeof(int)),
+                                            null,
+                                            0,
+                                            NativeMethods.PUAF_NOUI,
+                                            0);
             }
 
             return (policy == NativeMethods.URLPOLICY_QUERY);
@@ -406,15 +377,8 @@ namespace MS.Internal.AppModel
                         // This enables any dialogs popped to be modal to our window. 
                         // 
                         _secMgrSite = new SecurityMgrSite();
-                        new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); // BlessedAssert: 
-                        try
-                        {
-                            _secMgr.SetSecuritySite((NativeMethods.IInternetSecurityMgrSite)_secMgrSite);
-                        }
-                        finally
-                        {
-                            CodeAccessPermission.RevertAssert();
-                        }
+
+                        _secMgr.SetSecuritySite((NativeMethods.IInternetSecurityMgrSite)_secMgrSite);
                     }
                 }
             }
@@ -426,22 +390,14 @@ namespace MS.Internal.AppModel
         {
             if (_secMgr != null)
             {
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert();  // BlessedAssert: 
-                try
+                lock (_lockObj)
                 {
-                    lock (_lockObj)
+                    if (_secMgr != null)
                     {
-                        if (_secMgr != null)
-                        {
-                            _secMgr.SetSecuritySite(null);
-                            _secMgrSite = null;
-                            _secMgr = null;
-                        }
+                        _secMgr.SetSecuritySite(null);
+                        _secMgrSite = null;
+                        _secMgr = null;
                     }
-                }
-                finally
-                {
-                    CodeAccessPermission.RevertAssert();
                 }
             }
         }

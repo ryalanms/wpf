@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows.Input.StylusWisp;
 using System.Windows.Input.Tracing;
 using SR = MS.Internal.PresentationCore.SR;
@@ -105,20 +104,11 @@ namespace System.Windows.Input.StylusWisp
                     "ITablet2" :
                     "wisptis.exe";
 
-            // Perform the OS specific check for wisptis
-            new RegistryPermission(RegistryPermissionAccess.Read, keyToAssertPermissionFor).Assert(); // BlessedAssert
-            try
-            {
-                key = Registry.ClassesRoot.OpenSubKey(subkeyToOpen);
+            key = Registry.ClassesRoot.OpenSubKey(subkeyToOpen);
 
-                if (key != null)
-                {
-                    valDefault = key.GetValue("");
-                }
-            }
-            finally
+            if (key != null)
             {
-                RegistryPermission.RevertAssert();
+                valDefault = key.GetValue("");
             }
 
             if (key != null)
@@ -712,7 +702,7 @@ namespace System.Windows.Input.StylusWisp
 
         /////////////////////////////////////////////////////////////////////
 
-        TabletDevice[]          _tablets = new TabletDevice[0];
+        TabletDevice[]          _tablets = Array.Empty<TabletDevice>();
         uint                    _indexMouseTablet = UInt32.MaxValue;
         bool                    _inUpdateTablets;       // detect re-entrancy
         bool                    _hasUpdateTabletsBeenCalledReentrantly;

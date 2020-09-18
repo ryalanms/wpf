@@ -8,7 +8,6 @@ using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 using System;
 using System.Runtime.Serialization;
-using System.Security.Permissions;
 using System.Collections;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -371,11 +370,6 @@ namespace System.Windows.Automation
         /// These identifies are only guaranteed to be unique on a given desktop.
         /// Identifiers may be recycled over time.
         /// </summary>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public int[] GetRuntimeId()
         {
             if (_runtimeId != null)
@@ -409,11 +403,6 @@ namespace System.Windows.Automation
         /// </summary>
         /// <param name="pt">point in screen coordinates</param>
         /// <returns>element at specified point</returns>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static AutomationElement FromPoint(Point pt)
         {
             return DrillForPointOrFocus(true, pt, CacheRequest.CurrentUiaCacheRequest);
@@ -424,11 +413,6 @@ namespace System.Windows.Automation
         /// </summary>
         /// <param name="hwnd">Handle of window to get element for</param>
         /// <returns>element representing root node of specified window</returns>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static AutomationElement FromHandle(IntPtr hwnd)
         {
             Misc.ValidateArgument(hwnd != IntPtr.Zero, SRID.HwndMustBeNonNULL);
@@ -482,11 +466,6 @@ namespace System.Windows.Automation
         /// a cross-process performance hit. To access values in this AutomationElement's
         /// cache, use GetCachedPropertyValue instead.
         /// </remarks>
-        ///
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public object GetCurrentPropertyValue(AutomationProperty property)
         {
             return GetCurrentPropertyValue(property, false);
@@ -505,11 +484,6 @@ namespace System.Windows.Automation
         /// a cross-process performance hit. To access values in this AutomationElement's
         /// cache, use GetCachedPropertyValue instead.
         /// </remarks>
-        ///
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public object GetCurrentPropertyValue(AutomationProperty property, bool ignoreDefaultValue)
         {
             Misc.ValidateArgumentNonNull(property, "property");
@@ -565,11 +539,6 @@ namespace System.Windows.Automation
         /// a cross-process performance hit. To access patterns in this AutomationElement's
         /// cache, use GetCachedPattern instead.
         /// </remarks>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public object GetCurrentPattern(AutomationPattern pattern)
         {
             object retObject;
@@ -597,11 +566,6 @@ namespace System.Windows.Automation
         /// a cross-process performance hit. To access patterns in this AutomationElement's
         /// cache, use GetCachedPattern instead.
         /// </remarks>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public bool TryGetCurrentPattern(AutomationPattern pattern, out object patternObject)
         {
             patternObject = null;
@@ -646,11 +610,6 @@ namespace System.Windows.Automation
         /// support the AutomationElement.NameProperty, calling GetCachedPropertyValue
         /// for that property will return an empty string.
         /// </remarks>
-        ///
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public object GetCachedPropertyValue(AutomationProperty property)
         {
             return GetCachedPropertyValue(property, false);
@@ -675,11 +634,6 @@ namespace System.Windows.Automation
         /// When ignoreDefaultValue is true, the value AutomationElement.NotSupported will
         /// be returned instead.
         /// </remarks>
-        ///
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public object GetCachedPropertyValue(AutomationProperty property, bool ignoreDefaultValue)
         {
             Misc.ValidateArgumentNonNull(property, "property");
@@ -708,11 +662,6 @@ namespace System.Windows.Automation
         /// 
         /// This API gets the pattern from the cache. 
         /// </remarks>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public object GetCachedPattern(AutomationPattern pattern)
         {
             object patternObject;
@@ -732,11 +681,6 @@ namespace System.Windows.Automation
         /// <remarks>
         /// This API gets the pattern from the cache. 
         /// </remarks>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public bool TryGetCachedPattern(AutomationPattern pattern, out object patternObject)
         {
             patternObject = null;
@@ -844,11 +788,6 @@ namespace System.Windows.Automation
         /// currently support or which have null or empty values. Use GetPropertyValue to determine
         /// whether a property is currently supported and to determine what its current value is.
         /// </remarks>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public AutomationProperty [ ] GetSupportedProperties()
         {
             CheckElement();
@@ -879,11 +818,6 @@ namespace System.Windows.Automation
         /// Get the interfaces that this object supports
         /// </summary>
         /// <returns>An array of AutomationPatterns that represent the supported interfaces</returns>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public AutomationPattern [ ] GetSupportedPatterns()
         {
             CheckElement();
@@ -904,11 +838,6 @@ namespace System.Windows.Automation
         /// <summary>
         /// Request to set focus to this element
         /// </summary>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public void SetFocus()
         {
             CheckElement();
@@ -930,11 +859,6 @@ namespace System.Windows.Automation
         /// </summary>
         /// <param name="pt">A point that can be used ba a client to click on this LogicalElement</param>
         /// <returns>true if there is point that is clickable</returns>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public bool TryGetClickablePoint( out Point pt )
         {
             // initialize point here so if we return false its initialized
@@ -984,11 +908,6 @@ namespace System.Windows.Automation
         /// </summary>
         /// <returns>A point that can be used by a client to click on this LogicalElement</returns>
         /// <exception cref="NoClickablePointException">If there is not clickable point for this element</exception>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public Point GetClickablePoint()
         {
             Point pt;
@@ -1012,11 +931,6 @@ namespace System.Windows.Automation
         /// Get root element for current desktop
         /// </summary>
         /// <returns>root element for current desktop</returns>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static AutomationElement RootElement
         {
             get
@@ -1036,16 +950,10 @@ namespace System.Windows.Automation
         /// <summary>
         /// Return the currently focused element
         /// </summary>
-        /// 
-        /// <outside_see conditional="false">
-        /// This API does not work inside the secure execution environment.
-        /// <exception cref="System.Security.Permissions.SecurityPermission"/>
-        /// </outside_see>
         public static AutomationElement FocusedElement
         {
             get
             {
-                //CASRemoval:AutomationPermission.Demand(AutomationPermissionFlag.Read);
                 return DrillForPointOrFocus(false, new Point(0, 0), CacheRequest.CurrentUiaCacheRequest);
             }
         }

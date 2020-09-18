@@ -15,7 +15,6 @@ using System.Reflection;
 using MS.Internal;
 using MS.Win32.PresentationCore;
 using System.Security;
-using System.Security.Permissions;
 using System.Diagnostics;
 using System.Windows.Media;
 using System.Globalization;
@@ -374,7 +373,6 @@ namespace System.Windows.Media.Imaging
             int       destinationY
             )
         {
-            SecurityHelper.DemandUnmanagedCode();
             WritePreamble();
 
             WritePixelsImpl(sourceRect,
@@ -455,7 +453,6 @@ namespace System.Windows.Media.Imaging
             int stride
             )
         {
-            SecurityHelper.DemandUnmanagedCode();
             WritePreamble();
 
             if (bufferSize < 1)
@@ -1465,7 +1462,6 @@ namespace System.Windows.Media.Imaging
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
                 ReadPreamble();
 
                 return _backBuffer;

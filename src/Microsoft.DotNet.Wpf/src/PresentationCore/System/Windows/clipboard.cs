@@ -17,7 +17,6 @@ using MS.Internal.PresentationCore;                        // SecurityHelper
 using System.Collections.Specialized;
 using System.IO;
 using System.Security;
-using System.Security.Permissions;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -387,7 +386,6 @@ namespace System.Windows
         /// </remarks>
         public static IDataObject GetDataObject() 
         {
-            SecurityHelper.DemandAllClipboardPermission();
 
             return GetDataObjectInternal();
         }
@@ -455,7 +453,6 @@ namespace System.Windows
         /// </remarks>
         public static void SetDataObject(object data) 
         {
-            SecurityHelper.DemandAllClipboardPermission();
 
             if (data == null)
             {
@@ -480,7 +477,6 @@ namespace System.Windows
         /// </remarks>
         public static void SetDataObject(object data, bool copy)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             CriticalSetDataObject(data,copy);
         }
 
@@ -493,17 +489,6 @@ namespace System.Windows
         //  Internal Methods
         //
         //------------------------------------------------------
-
-        /// <summary>
-        /// Determines whether the legacy dangerous clipboard deserialization mode should be used based on the AppContext switch and Device Guard policies.
-        /// </summary>
-        /// <returns>
-        /// If Device Guard is enabled this method returns false, otherwise it returns the AppContext switch value.
-        /// </returns>
-        internal static bool UseLegacyDangerousClipboardDeserializationMode()
-        {
-            return !IsDeviceGuardEnabled && CoreAppContextSwitches.EnableLegacyDangerousClipboardDeserializationMode;
-        }
 
         /// <summary>
         /// Places data on the system Clipboard and uses copy to specify whether the data 
@@ -531,7 +516,6 @@ namespace System.Windows
             }
             else if (data is IComDataObject)
             {
-                SecurityHelper.DemandUnmanagedCode();
                 dataObject = (IComDataObject)data;
             }
             else
@@ -576,17 +560,7 @@ namespace System.Windows
         [FriendAccessAllowed]
         internal static bool IsClipboardPopulated()
         {
-            bool isPopulated = false;
-            (new UIPermission(UIPermissionClipboard.AllClipboard)).Assert();//BlessedAssert
-            try
-            {
-                isPopulated = (GetDataObjectInternal() != null);
-            }
-            finally
-            {
-                UIPermission.RevertAssert();
-            }
-            return isPopulated;
+            return (GetDataObjectInternal() != null);
         }
 
         #endregion Internal Methods
@@ -655,54 +629,6 @@ namespace System.Windows
             return isEnabled;
         }
 
-        private static bool IsDataObjectFromLessPriviligedApplicationDomain(IDataObject dataObjectToApply)
-        {
-            bool retVal = false;
-            object applicationTrust = null;
-            // Extract the permission set in case of xaml cut and paste
-            // extract permission set if it exists if not data came from full trust app and we do not care
-            bool isApplicationTrustFormatPresent = false;
-            isApplicationTrustFormatPresent = dataObjectToApply.GetDataPresent(DataFormats.ApplicationTrust, /*autoConvert:*/false);
-            if (isApplicationTrustFormatPresent)
-            {
-                applicationTrust = dataObjectToApply.GetData(DataFormats.ApplicationTrust, /*autoConvert:*/false);
-            }
-
-            if (applicationTrust != null)
-            {
-                string applicationTrustText = null;
-                // convert to string
-                applicationTrustText = applicationTrust.ToString();
-
-
-                // Convert string to permission set for getting permission set of source
-                PermissionSet permissionSetSource;
-                try
-                {
-                    SecurityElement securityElement = SecurityElement.FromString(applicationTrustText);
-                    permissionSetSource = new System.Security.PermissionSet(PermissionState.None);
-                    permissionSetSource.FromXml(securityElement);
-                }
-                catch(XmlSyntaxException)
-                {
-                    // This is the condition where we have Malformed XML in the clipboard for application trust
-                    // here we will fail silently since we do not want to break arbitrary applications
-                    // but since we cannot establish the validity of the application trust content we will fall back to
-                    // whatever is more secure
-                    return  true;
-                }
-
-                //extract permission set for the current appdomain which is target
-                PermissionSet permissionSetDestination = SecurityHelper.ExtractAppDomainPermissionSetMinusSiteOfOrigin();
-                //Compare permissions sets
-                if (!permissionSetDestination.IsSubsetOf(permissionSetSource))
-                {
-                    retVal = true; // in case target is not subset of source revert to unicode or text
-                }
-            }
-            return retVal;
-        }
-
         private static IDataObject GetDataObjectInternal()
         {
             IDataObject dataObject;
@@ -746,23 +672,7 @@ namespace System.Windows
             {
                 dataObject = null;
             }
-            // We make this check outside of the loop independant of whether the data is ole data object or IDataObject 
-            // Although one is unable to create an OleDataObject in partial trust we still need to ensure that if he did
-            // we strip the formats we care about by wrapping in ConstrainedDataObject
-            if (dataObject != null)
-            {
-                // this is the case we are concerend about where content comes from partial trust into full trust
-                // in the case where data contained is in one of the two formats: XAML or ApplicationTrust we return a wrapper
-                // that blocks access to these
-                if (IsDataObjectFromLessPriviligedApplicationDomain(dataObject) &&
-                    (dataObject.GetDataPresent(DataFormats.Xaml, /*autoConvert:*/false) ||
-                     dataObject.GetDataPresent(DataFormats.ApplicationTrust, /*autoConvert:*/false)))
-                {
-                    // in this case we set the data object to be a wrapper data object that blocks off
-                    // xaml or application trust formats if they exist
-                    dataObject = new ConstrainedDataObject(dataObject);
-                }
-            }
+
             return dataObject;
         }
 
@@ -771,7 +681,6 @@ namespace System.Windows
         /// </summary>
         private static bool ContainsDataInternal(string format)
         {
-            SecurityHelper.DemandAllClipboardPermission();
             bool isFormatAvailable = false;
 
             if (IsDataFormatAutoConvert(format))

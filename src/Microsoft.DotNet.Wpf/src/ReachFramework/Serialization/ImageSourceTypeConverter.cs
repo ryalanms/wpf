@@ -22,7 +22,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Xps.Packaging;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal.ReachFramework;
 using System.Windows.Markup;
 using MS.Internal.IO.Packaging;
@@ -370,54 +369,23 @@ namespace System.Windows.Xps.Serialization
             // The uri the BitmapFrame.Create will use is null since it is accessing  metadata at
             // construction and its uri is still null
             //
-            CodeAccessPermission mediaAccessPermission = SecurityHelper.CreateMediaAccessPermission(null);
 
-            if (mediaAccessPermission != null)
+            // If bitmapSource is indexed, has a color palette and transparency (e.g. transparent GIF)
+            // PNG conversion may lose color or transparency or both information
+            // To avoid this we convert all paletted bitmapSources to the 32 bit per pixel bgra format
+            if (bitmapSource != null
+                && bitmapSource.Palette != null
+                && bitmapSource.Palette.Colors != null
+                && bitmapSource.Palette.Colors.Count > 0)
             {
-                mediaAccessPermission.Assert(); //BlessedAssert
+                bitmapSource = new FormatConvertedBitmap(bitmapSource, PixelFormats.Bgra32, null, 0.0);
             }
-            try
-            {
-                // DevDiv bug 213320
-                // If bitmapSource is indexed, has a color palette and transparency (e.g. transparent GIF)
-                // PNG conversion may lose color or transparency or both information
-                // To avoid this we convert all paletted bitmapSources to the 32 bit per pixel bgra format
-                if (bitmapSource != null
-                    && bitmapSource.Palette != null
-                    && bitmapSource.Palette.Colors != null
-                    && bitmapSource.Palette.Colors.Count > 0)
-                {
-                    bitmapSource = new FormatConvertedBitmap(bitmapSource, PixelFormats.Bgra32, null, 0.0);
-                }
 
-                bitmapFrame = BitmapFrame.Create(bitmapSource);
-            }
-            finally
-            {
-                if (mediaAccessPermission != null)
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
-            }
+            bitmapFrame = BitmapFrame.Create(bitmapSource);
+
             encoder.Frames.Add(bitmapFrame);
 
-
-            if (mediaAccessPermission != null)
-            {
-                mediaAccessPermission.Assert(); //BlessedAssert
-            }
-            try
-            {
-                encoder.Save(stream);
-            }
-            finally
-            {
-                if (mediaAccessPermission != null)
-                {
-                    CodeAccessPermission.RevertAssert();
-                }
-            }
-
+            encoder.Save(stream);
 }
 
         /// <summary>
@@ -471,18 +439,7 @@ namespace System.Windows.Xps.Serialization
             // To determine the mime-type of the image we just grab
             // the first one supported by this encoder and use that.
             //
-            PermissionSet permissions = new PermissionSet(null);
-            permissions.AddPermission(new SecurityPermission(SecurityPermissionFlag.UnmanagedCode));
-            permissions.AddPermission(new RegistryPermission(PermissionState.Unrestricted));
-            permissions.Assert();
-            try
-            {
-                mimetypes = encoder.CodecInfo.MimeTypes;
-            }
-            finally
-            {
-                CodeAccessPermission.RevertAssert();
-            }
+            mimetypes = encoder.CodecInfo.MimeTypes;
             int comma = mimetypes.IndexOf(',');
             if (comma != -1)
             {

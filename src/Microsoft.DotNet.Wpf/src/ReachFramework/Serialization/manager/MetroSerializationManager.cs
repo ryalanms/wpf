@@ -21,7 +21,6 @@ using System.Reflection;
 using System.Xml;
 using System.IO;
 using System.Security;
-using System.Security.Permissions;
 using System.ComponentModel.Design.Serialization;
 using System.Windows.Xps.Packaging;
 using System.Windows.Documents;
@@ -416,18 +415,12 @@ namespace System.Windows.Xps.Serialization
         internal
         int
         JobIdentifier
-        {
-            [System.Drawing.Printing.PrintingPermission(
-             System.Security.Permissions.SecurityAction.Demand,
-             Level = System.Drawing.Printing.PrintingPermissionLevel.DefaultPrinting)]                    
+        {                
             set
             {
                 _jobIdentifier = value;
             }
-
-            [System.Drawing.Printing.PrintingPermission(
-             System.Security.Permissions.SecurityAction.Demand,
-             Level = System.Drawing.Printing.PrintingPermissionLevel.DefaultPrinting)]                    
+                    
             get
             {
                 return _jobIdentifier;

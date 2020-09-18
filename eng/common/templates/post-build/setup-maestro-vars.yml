@@ -1,14 +1,23 @@
+parameters:
+  BARBuildId: ''
+  PromoteToChannelIds: ''
+
 jobs:
 - job: setupMaestroVars
   displayName: Setup Maestro Vars
+  variables:
+    - template: common-variables.yml
   pool:
     vmImage: 'windows-2019'
   steps:
-    - task: DownloadBuildArtifacts@0
-      displayName: Download Release Configs
-      inputs:
-        buildType: current
-        artifactName: ReleaseConfigs
+    - checkout: none
+
+    - ${{ if eq(coalesce(parameters.PromoteToChannelIds, 0), 0) }}:
+      - task: DownloadBuildArtifacts@0
+        displayName: Download Release Configs
+        inputs:
+          buildType: current
+          artifactName: ReleaseConfigs
 
     - task: PowerShell@2
       name: setReleaseVars
@@ -16,23 +25,53 @@ jobs:
       inputs:
         targetType: inline
         script: |
-          # This is needed to make Write-PipelineSetVariable works in this context
-          if ($env:BUILD_BUILDNUMBER -ne "" -and $env:BUILD_BUILDNUMBER -ne $null) {
-            $ci = $true
+          try {
+            if (!$Env:PromoteToMaestroChannels -or $Env:PromoteToMaestroChannels.Trim() -eq '') {
+              $Content = Get-Content $(Build.StagingDirectory)/ReleaseConfigs/ReleaseConfigs.txt
 
-            . "$(Build.SourcesDirectory)/eng/common/tools.ps1"
-              
-            $BarId = Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/BARBuildId.txt" 
-            Write-PipelineSetVariable -Name 'BARBuildId' -Value $BarId
+              $BarId = $Content | Select -Index 0
+              $Channels = $Content | Select -Index 1             
+              $IsStableBuild = $Content | Select -Index 2
 
-            Write-Host "Asked Write-PipelineSetVariable to create BARBuildId with value '$BarId'"
+              $AzureDevOpsProject = $Env:System_TeamProject
+              $AzureDevOpsBuildDefinitionId = $Env:System_DefinitionId
+              $AzureDevOpsBuildId = $Env:Build_BuildId
+            }
+            else {
+              $buildApiEndpoint = "${Env:MaestroApiEndPoint}/api/builds/${Env:BARBuildId}?api-version=${Env:MaestroApiVersion}"
 
-            $Channels = ""
-            Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/Channels.txt" | ForEach-Object { $Channels += "$_ ," }
-            Write-PipelineSetVariable -Name 'InitialChannels' -Value "$Channels"
+              $apiHeaders = New-Object 'System.Collections.Generic.Dictionary[[String],[String]]'
+              $apiHeaders.Add('Accept', 'application/json')
+              $apiHeaders.Add('Authorization',"Bearer ${Env:MAESTRO_API_TOKEN}")
 
-            Write-Host "Asked Write-PipelineSetVariable to create InitialChannels with value '$Channels'"
+              $buildInfo = try { Invoke-WebRequest -Method Get -Uri $buildApiEndpoint -Headers $apiHeaders | ConvertFrom-Json } catch { Write-Host "Error: $_" }
+             
+              $BarId = $Env:BARBuildId
+              $Channels = $Env:PromoteToMaestroChannels -split ","
+              $Channels = $Channels -join "]["
+              $Channels = "[$Channels]"
+
+              $IsStableBuild = $buildInfo.stable
+              $AzureDevOpsProject = $buildInfo.azureDevOpsProject
+              $AzureDevOpsBuildDefinitionId = $buildInfo.azureDevOpsBuildDefinitionId
+              $AzureDevOpsBuildId = $buildInfo.azureDevOpsBuildId
+            }
+
+            Write-Host "##vso[task.setvariable variable=BARBuildId;isOutput=true]$BarId"
+            Write-Host "##vso[task.setvariable variable=TargetChannels;isOutput=true]$Channels"
+            Write-Host "##vso[task.setvariable variable=IsStableBuild;isOutput=true]$IsStableBuild"
+
+            Write-Host "##vso[task.setvariable variable=AzDOProjectName;isOutput=true]$AzureDevOpsProject"
+            Write-Host "##vso[task.setvariable variable=AzDOPipelineId;isOutput=true]$AzureDevOpsBuildDefinitionId"
+            Write-Host "##vso[task.setvariable variable=AzDOBuildId;isOutput=true]$AzureDevOpsBuildId"
           }
-          else {
-            Write-Host "This step can only be run in an Azure DevOps CI environment."
+          catch {
+            Write-Host $_
+            Write-Host $_.Exception
+            Write-Host $_.ScriptStackTrace
+            exit 1
           }
+      env:
+        MAESTRO_API_TOKEN: $(MaestroApiAccessToken)
+        BARBuildId: ${{ parameters.BARBuildId }}
+        PromoteToMaestroChannels: ${{ parameters.PromoteToChannelIds }}

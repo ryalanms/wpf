@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Printing;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -46,7 +45,6 @@ namespace System.Windows.Controls
         PrintDialog(
             )
         {
-            _dialogInvoked = false;
 
             _printQueue = null;
             _printTicket = null;
@@ -207,7 +205,6 @@ namespace System.Windows.Controls
         {
             get
             {
-                SecurityHelper.DemandPrintDialogPermissions();
 
                 if (_printQueue == null)
                 {
@@ -218,7 +215,6 @@ namespace System.Windows.Controls
             }
             set
             {
-                SecurityHelper.DemandPrintDialogPermissions();
 
                 _printQueue = value;
             }
@@ -231,7 +227,6 @@ namespace System.Windows.Controls
         {
             get
             {
-                SecurityHelper.DemandPrintDialogPermissions();
 
                 if (_printTicket == null)
                 {
@@ -242,7 +237,6 @@ namespace System.Windows.Controls
             }
             set
             {
-                SecurityHelper.DemandPrintDialogPermissions();
 
                 _printTicket = value;
             }
@@ -303,10 +297,6 @@ namespace System.Windows.Controls
         Nullable<bool>
         ShowDialog()
         {
-            //
-            // Reset this flag as we have not displayed the dialog yet.
-            //
-            _dialogInvoked = false;
 
             Win32PrintDialog dlg = new Win32PrintDialog();
 
@@ -338,7 +328,6 @@ namespace System.Windows.Controls
                 _printQueue = dlg.PrintQueue;
                 _pageRange = dlg.PageRange;
                 _pageRangeSelection = dlg.PageRangeSelection;
-                _dialogInvoked = true;
             }
 
             return (dialogResult == MS.Internal.Printing.NativeMethods.PD_RESULT_PRINT);
@@ -373,7 +362,6 @@ namespace System.Windows.Controls
             _printableAreaHeight            = 0;
             _isPrintableAreaWidthUpdated    = false;
             _isPrintableAreaHeightUpdated   = false;
-            _dialogInvoked                  = false;
         }
 
 
@@ -406,7 +394,6 @@ namespace System.Windows.Controls
             _printableAreaHeight = 0;
             _isPrintableAreaWidthUpdated = false;
             _isPrintableAreaHeightUpdated = false;
-            _dialogInvoked = false;
         }
 
         #endregion Public methods
@@ -419,27 +406,19 @@ namespace System.Windows.Controls
         {
             PrintQueue printQueue = null;
 
-            MS.Internal.SystemDrawingHelper.NewDefaultPrintingPermission().Assert(); //BlessedAssert
             try
             {
-                try
-                {
-                    LocalPrintServer server = new LocalPrintServer();
-                    printQueue = server.DefaultPrintQueue;
-                }
-                catch (PrintSystemException)
-                {
-                    //
-                    // It is entirely possible for there to be no "default" printer.  In this case,
-                    // the printing system throws an exception.  We do not want this to propagate
-                    // up.  Instead, returning null is fine.
-                    //
-                    printQueue = null;
-                }
+                LocalPrintServer server = new LocalPrintServer();
+                printQueue = server.DefaultPrintQueue;
             }
-            finally
+            catch (PrintSystemException)
             {
-                CodeAccessPermission.RevertAssert();
+                //
+                // It is entirely possible for there to be no "default" printer.  In this case,
+                // the printing system throws an exception.  We do not want this to propagate
+                // up.  Instead, returning null is fine.
+                //
+                printQueue = null;
             }
 
             return printQueue;
@@ -453,33 +432,25 @@ namespace System.Windows.Controls
         {
             PrintTicket printTicket = null;
 
-            MS.Internal.SystemDrawingHelper.NewDefaultPrintingPermission().Assert(); //BlessedAssert
             try
             {
-                try
+                if (printQueue != null)
                 {
-                    if (printQueue != null)
+                    printTicket = printQueue.UserPrintTicket;
+                    if (printTicket == null)
                     {
-                        printTicket = printQueue.UserPrintTicket;
-                        if (printTicket == null)
-                        {
-                            printTicket = printQueue.DefaultPrintTicket;
-                        }
+                        printTicket = printQueue.DefaultPrintTicket;
                     }
                 }
-                catch (PrintSystemException)
-                {
-                    //
-                    // The printing subsystem can throw an exception in certain cases when
-                    // the print ticket is unavailable.  If it does we will handle this
-                    // below.  There is no real need to bubble this up to the application.
-                    //
-                    printTicket = null;
-                }
             }
-            finally
+            catch (PrintSystemException)
             {
-                CodeAccessPermission.RevertAssert();
+                //
+                // The printing subsystem can throw an exception in certain cases when
+                // the print ticket is unavailable.  If it does we will handle this
+                // below.  There is no real need to bubble this up to the application.
+                //
+                printTicket = null;
             }
 
             //
@@ -566,25 +537,17 @@ namespace System.Windows.Controls
 
             PickCorrectPrintingEnvironment(ref printQueue, ref printTicket);
 
-            MS.Internal.SystemDrawingHelper.NewDefaultPrintingPermission().Assert(); //BlessedAssert
-            try
+            if(printQueue != null)
             {
-                if(printQueue != null)
-                {
-                    printQueue.CurrentJobSettings.Description = description;
-                }
-
-                writer = PrintQueue.CreateXpsDocumentWriter(printQueue);
-
-                PrintDlgPrintTicketEventHandler eventHandler = new PrintDlgPrintTicketEventHandler(printTicket);
-
-                writer.WritingPrintTicketRequired +=
-                new WritingPrintTicketRequiredEventHandler(eventHandler.SetPrintTicket);
+                printQueue.CurrentJobSettings.Description = description;
             }
-            finally
-            {
-                CodeAccessPermission.RevertAssert();
-            }
+
+            writer = PrintQueue.CreateXpsDocumentWriter(printQueue);
+
+            PrintDlgPrintTicketEventHandler eventHandler = new PrintDlgPrintTicketEventHandler(printTicket);
+
+            writer.WritingPrintTicketRequired +=
+            new WritingPrintTicketRequiredEventHandler(eventHandler.SetPrintTicket);
 
             return writer;
         }
@@ -596,24 +559,6 @@ namespace System.Windows.Controls
             ref PrintTicket printTicket
             )
         {
-            if (_dialogInvoked == false)
-            {
-                //
-                // If the dialog has not been invoked then the user needs printing permissions.
-                // If the demand succeeds then they can print.  If the demand fails, then we
-                // tell them that the print dialog must be displayed first by throwing a dialog
-                // exception.
-                //
-                try
-                {
-                    SecurityHelper.DemandPrintDialogPermissions();
-                }
-                catch (SecurityException)
-                {
-                    throw new PrintDialogException(SR.Get(SRID.PartialTrustPrintDialogMustBeInvoked));
-                }
-            }
-
             //
             // If the default print queue and print ticket have not already
             // been selected then update them now since we need them.
@@ -650,9 +595,6 @@ namespace System.Windows.Controls
 
         private
         PrintQueue                  _printQueue;
-
-        private
-        bool                        _dialogInvoked;
 
         private
         PageRangeSelection          _pageRangeSelection;

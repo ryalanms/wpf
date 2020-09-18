@@ -36,6 +36,11 @@ namespace System.Windows.Documents
         internal interface ISpellerSegment
         {
             /// <summary>
+            /// Source String for which <see cref="TextRange"/> provides a position
+            /// </summary>
+            string SourceString { get; }
+
+            /// <summary>
             /// Identifies sub-words, if any. 
             /// </summary>
             IReadOnlyList<ISpellerSegment> SubSegments { get; }
@@ -44,6 +49,11 @@ namespace System.Windows.Documents
             /// Obtains the position of this segment in it's source text string
             /// </summary>
             ITextRange TextRange { get; }
+
+            /// <summary>
+            /// Text represented by <see cref="TextRange"/>
+            /// </summary>
+            string Text { get; }
 
             /// <summary>
             /// Queries the spell-checker to obtain suggestions for this segment
@@ -174,9 +184,6 @@ namespace System.Windows.Documents
         /// There are 2 kinds of files we're trying to load here: Files specified by user directly, and files
         /// which we created and filled with data from pack Uri locations specified by user.
         /// These 'trusted' files are placed under <paramref name="trustedFolder"/>.
-        ///
-        /// Explicitly specified file locations will be passed to COM APIs without asserting
-        /// Security permissions, so it would pass in FullTrust and fail in PartialTrust.
         ///
         /// Files specified in <paramref name="trustedFolder"/> are wrapped in FileIOPermission.Assert(),
         /// providing read access to trusted files under <paramref name="trustedFolder"/>, i.e. additionally

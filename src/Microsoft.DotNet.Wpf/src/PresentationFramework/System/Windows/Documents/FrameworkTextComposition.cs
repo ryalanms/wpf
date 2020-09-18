@@ -14,7 +14,6 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Security;
-using System.Security.Permissions;
 
 namespace System.Windows.Documents
 {
@@ -61,9 +60,6 @@ namespace System.Windows.Documents
         ///     We finalize Cicero's composition and TextStore will automatically
         ///     generate the proper TextComposition events.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public override void Complete()
         {
             _pendingComplete = true;

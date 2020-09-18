@@ -20,7 +20,6 @@ namespace Microsoft.Win32
     using System;
     using System.Runtime.InteropServices;
     using System.Security;
-    using System.Security.Permissions;
     using System.Threading;
     using System.Windows;
     using System.Windows.Interop;
@@ -265,7 +264,6 @@ namespace Microsoft.Win32
                 throw new InvalidOperationException(SR.Get(SRID.CantShowOnDifferentThread));
             }
 
-            SecurityHelper.DemandUIWindowPermission();
         }
 
         #endregion Protected Methods

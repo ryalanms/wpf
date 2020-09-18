@@ -14,7 +14,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -102,8 +101,6 @@ namespace System.Windows
 
             Window.DpiChangedEvent = EventManager.RegisterRoutedEvent("DpiChanged", RoutingStrategy.Bubble,
                 typeof (System.Windows.DpiChangedEventHandler), typeof (Window));
-
-            WpfDllVerifier.VerifyWpfDllSet();
         }
 
         /// <summary>
@@ -123,7 +120,6 @@ namespace System.Windows
         /// </remarks>
         public Window()
         {
-            SecurityHelper.DemandUnmanagedCode();
             _inTrustedSubWindow = false;
             Initialize();
         }
@@ -152,7 +148,6 @@ namespace System.Windows
             else
             {
                 _inTrustedSubWindow = false;
-                SecurityHelper.DemandUnmanagedCode();
             }
             Initialize();
 }
@@ -231,7 +226,6 @@ namespace System.Windows
             // this call ends up throwing an exception if Close
             // is not allowed
             VerifyApiSupported();
-            SecurityHelper.DemandUIWindowPermission();
             VerifyContextAndObjectState();
             InternalClose(false, false);
         }
@@ -249,7 +243,6 @@ namespace System.Windows
             // this call ends up throwing an exception if dragmove
             // is not allowed
             VerifyApiSupported();
-            SecurityHelper.DemandUIWindowPermission();
             VerifyContextAndObjectState();
             VerifyHwndCreateShowState();
 
@@ -292,7 +285,6 @@ namespace System.Windows
             // this call ends up throwing an exception if ShowDialog
             // is not allowed
             VerifyApiSupported();
-            SecurityHelper.DemandUnrestrictedUIPermission();
             VerifyContextAndObjectState();
             VerifyCanShow();
             VerifyNotClosing();
@@ -509,11 +501,6 @@ namespace System.Windows
             // this call ends up throwing an exception if Activate
             // is not allowed
             VerifyApiSupported();
-            //
-            // Demand AllWindows code permission.
-            // There be a more appropriate less-restrictive permission - but this should suffice for now.
-            //
-            SecurityHelper.DemandUIWindowPermission();
             VerifyContextAndObjectState();
             VerifyHwndCreateShowState();
 
@@ -850,7 +837,6 @@ namespace System.Windows
                 // this call ends up throwing an exception if accessing
                 // Icon is not allowed
                 VerifyApiSupported();
-                SecurityHelper.DemandUIWindowPermission();
                 VerifyContextAndObjectState();
 
                 SetValue(IconProperty, value);
@@ -1033,11 +1019,6 @@ namespace System.Windows
                 // is not allowed
                 VerifyApiSupported();
 
-                if (!_inTrustedSubWindow)
-                {
-                    SecurityHelper.DemandUIWindowPermission();
-                }
-
                 // either before calling show or after closing AND
                 // Adding check for IsCompositionTargetInvalid
                 if (IsSourceWindowNull || IsCompositionTargetInvalid)
@@ -1190,7 +1171,6 @@ namespace System.Windows
                 // this call ends up throwing an exception if accessing Owner
                 // is not allowed
                 VerifyApiSupported();
-                SecurityHelper.DemandUIWindowPermission();
                 VerifyContextAndObjectState();
                 return _ownerWindow;
             }
@@ -1199,7 +1179,6 @@ namespace System.Windows
                 // this call ends up throwing an exception if accessing Owner
                 // is not allowed
                 VerifyApiSupported();
-                SecurityHelper.DemandUIWindowPermission();
                 VerifyContextAndObjectState();
                 if (value == this)
                 {
@@ -2260,7 +2239,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUIWindowPermission();
 
                 if ( _swh != null )
                     return _swh.HwndSourceWindow;
@@ -2927,7 +2905,6 @@ namespace System.Windows
         {
             if (!_inTrustedSubWindow)
             {
-                 SecurityHelper.DemandUIWindowPermission();
             }
             Debug.Assert( IsSourceWindowNull == false , "IsSourceWindowNull cannot be true when calling this function");
 
@@ -3086,14 +3063,12 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUIWindowPermission();
 
                 VerifyContextAndObjectState();
                 return _ownerHandle;
             }
             set
             {
-                SecurityHelper.DemandUIWindowPermission();
 
                 VerifyContextAndObjectState();
 
@@ -3146,7 +3121,6 @@ namespace System.Windows
             }
             set
             {
-                SecurityHelper.DemandUIWindowPermission();
                 _styleDoNotUse= new SecurityCriticalDataForSet<int>(value);
                 Manager.Dirty = true;
             }
@@ -3171,7 +3145,6 @@ namespace System.Windows
                 }
             set
             {
-                SecurityHelper.DemandUIWindowPermission();
                 _styleExDoNotUse= new SecurityCriticalDataForSet<int>((int)value);
                 Manager.Dirty = true;
             }
@@ -3526,8 +3499,6 @@ namespace System.Windows
         ///     for browser hosted case
         private void Initialize()
         {
-            // AVTempUIPermission avtUIPermission = new AVTempUIPermission(AVTUIPermissionNewWindow.LaunchNewWindows);
-            // CASRemoval:avtUIPermission.Demand();
 
             //  this makes MeasureCore / ArrangeCore to defer to direct MeasureOverride and ArrangeOverride calls
             //  without reading Width / Height properties and modifying input constraint size parameter...
@@ -3610,7 +3581,6 @@ namespace System.Windows
 
         IntPtr GetCurrentMonitorFromMousePosition()
         {
-            SecurityHelper.DemandUnmanagedCode();
             // center on the screen on which the mouse is on
             NativeMethods.POINT pt = new NativeMethods.POINT();
 
@@ -4299,7 +4269,6 @@ namespace System.Windows
 
         private void DoDialogHide()
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             Debug.Assert(_showingAsDialog == true, "_showingAsDialog must be true when DoDialogHide is called");
 
@@ -4669,11 +4638,6 @@ namespace System.Windows
                 return false;
             }
 
-            if (!_inTrustedSubWindow)
-            {
-                SecurityHelper.DemandUIWindowPermission();
-            }
-
             // the input lparam gives the client location,
             // so just call GetWindowRect for Left and Top.
             NativeMethods.RECT rc = WindowBounds;
@@ -4993,11 +4957,6 @@ namespace System.Windows
 
         private void OnShowInTaskbarChanged()
         {
-            if (!_inTrustedSubWindow)
-            {
-                SecurityHelper.DemandUIWindowPermission();
-            }
-
             // this call ends up throwing an exception if accessing
             // ShowInTaskbar is not allowed
             VerifyApiSupported();
@@ -5058,7 +5017,6 @@ namespace System.Windows
 
         private void OnWindowStateChanged(WindowState windowState)
         {
-            SecurityHelper.DemandUIWindowPermission();
 
             //      WCP:  Window.Visible.Set : Make sure that window updates the styles
             //      when set while window is hidden
@@ -5186,17 +5144,6 @@ namespace System.Windows
 
         private void OnWindowStyleChanged(WindowStyle windowStyle)
         {
-            //Per our conversation with Aaron today, in M6 we are going to demand UnrestrictedFullScreen permission for
-            //setting WindowStyle to None. But there will be changes in M7 so that we can differentiate between FullScreen
-            //and NoBorder window, so we comment this section out for future references.
-            //if ((value == WindowStyle.None) && (WindowState == WindowState.Maximized))
-            //if (windowStyle == WindowStyle.None)
-            //{
-            //    AVTempUIPermission avtUIPermission = new AVTempUIPermission(AVTUIPermissionFullScreen.UnrestrictedFullScreen);
-
-                //CASRemoval:avtUIPermission.Demand();
-            //}
-
             // Adding check for IsCompositionTargetInvalid
             if (IsSourceWindowNull == false && IsCompositionTargetInvalid == false)
             {
@@ -5217,7 +5164,6 @@ namespace System.Windows
 
         private void OnTopmostChanged(bool topmost)
         {
-            SecurityHelper.DemandUIWindowPermission(); // Demand UI permission for topmost.
 
             // this call ends up throwing an exception if accessing
             // Topmost is not allowed
@@ -5290,11 +5236,6 @@ namespace System.Windows
             //this is true the first time the window is created
             if (IsSourceWindowNull == true)
             {
-                //this is true only if called via RBW
-                if (!_inTrustedSubWindow)
-                {
-                   SecurityHelper.DemandUIWindowPermission();
-                }
                 // _isVisible is false at this moment.  Thus CreateAllStyle
                 // called by CreateSourceWindow does not set WS_VISIBLE style
 
@@ -5398,11 +5339,6 @@ namespace System.Windows
             }
             else
             {
-                //demand in case you are trying to hide this window
-                if (!_inTrustedSubWindow)
-                {
-                    SecurityHelper.DemandUIWindowPermission();
-                }
 
                 ClearShowKeyboardCueState();
 
@@ -5523,17 +5459,9 @@ namespace System.Windows
 
         private void SafeStyleSetter()
         {
-            (new UIPermission(UIPermissionWindow.AllWindows)).Assert();
-            try//blessed assert to toggle visibility, this does not let random styles from being set
+            using (HwndStyleManager sm = HwndStyleManager.StartManaging(this, StyleFromHwnd, StyleExFromHwnd))
             {
-                using (HwndStyleManager sm = HwndStyleManager.StartManaging(this, StyleFromHwnd, StyleExFromHwnd))
-                {
-                    _Style = _isVisible ? (_Style | NativeMethods.WS_VISIBLE) : _Style;
-                }
-            }
-            finally
-            {
-                UIPermission.RevertAssert();
+                _Style = _isVisible ? (_Style | NativeMethods.WS_VISIBLE) : _Style;
             }
         }
         private static bool _ValidateSizeToContentCallback(object value)
@@ -5821,7 +5749,6 @@ namespace System.Windows
         // OR-ing of BoundsSpecified enum is not supported.
         private void UpdateHwndRestoreBounds(double newValue, BoundsSpecified specifiedRestoreBounds)
         {
-            SecurityHelper.DemandUIWindowPermission();
 
             NativeMethods.WINDOWPLACEMENT wp = new NativeMethods.WINDOWPLACEMENT();
             wp.length = Marshal.SizeOf(typeof(NativeMethods.WINDOWPLACEMENT));
@@ -5901,10 +5828,6 @@ namespace System.Windows
             int deltaX = 0;
             int deltaY = 0;
             Point retPt;
-            if (!_inTrustedSubWindow)
-            {
-                SecurityHelper.DemandUIWindowPermission();
-            }
 
             // First we get the monitor on which the window is on.  [Get/Set]WindowPlacement
             // co-ods are dependent on the monitor on which the window is on.
@@ -6147,7 +6070,6 @@ namespace System.Windows
         private void UpdateHwndPositionOnTopLeftChange(double leftLogicalUnits, double topLogicalUnits)
         {
             Debug.Assert( IsSourceWindowNull == false , "IsSourceWindowNull cannot be true when calling this function");
-            SecurityHelper.DemandUIWindowPermission();
 
             Point ptDeviceUnits = LogicalToDeviceUnits(new Point(leftLogicalUnits, topLogicalUnits));
 
@@ -6289,7 +6211,6 @@ namespace System.Windows
             {
                 // To remove the taskbar button for this window it needs to have a non-null parent
                 // (we'll create a hidden window for this purpose) and not have WS_EX_APPWINDOW
-                SecurityHelper.DemandUIWindowPermission();
 
                 // Create this now, even if we're not currently going to parent it.
                 // If the Owner changes, we'll need to switch to this.

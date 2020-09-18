@@ -7,7 +7,6 @@ using System;
 using System.Threading;
 using System.Diagnostics.CodeAnalysis;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using MS.Win32;
 using MS.Internal.WindowsBase;
@@ -62,14 +61,10 @@ namespace System.Windows.Interop
         /// Returns true if one or more components has gone modal.
         /// Although once one component is modal a 2nd shouldn't.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static bool IsThreadModal
         {
             get
             {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcherThread data = ComponentDispatcher.CurrentThreadData;
                 return data.IsThreadModal;
             }
@@ -78,14 +73,10 @@ namespace System.Windows.Interop
         /// <summary>
         /// Returns "current" message.   More exactly the last MSG Raised.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static MSG CurrentKeyboardMessage
         {
             get
             {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 return ComponentDispatcher.CurrentThreadData.CurrentKeyboardMessage;
             }
         }
@@ -113,12 +104,8 @@ namespace System.Windows.Interop
         /// <summary>
         /// A component calls this to go modal.  Current thread wide only.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static void PushModal()
         {
-            SecurityHelper.DemandUnrestrictedUIPermission();
             CriticalPushModal();
         }
 
@@ -134,12 +121,8 @@ namespace System.Windows.Interop
         /// <summary>
         /// A component calls this to end being modal.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static void PopModal()
         {
-            SecurityHelper.DemandUnrestrictedUIPermission();
             CriticalPopModal();
         }
 
@@ -155,9 +138,6 @@ namespace System.Windows.Interop
         /// <summary>
         /// The message loop pumper calls this when it is time to do idle processing.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         [SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate")]
         public static void RaiseIdle()
         {
@@ -168,9 +148,6 @@ namespace System.Windows.Interop
         /// <summary>
         /// The message loop pumper calls this for every keyboard message.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         [SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate")]
         [SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference")]
         public static bool RaiseThreadMessage(ref MSG msg)
@@ -185,17 +162,12 @@ namespace System.Windows.Interop
         /// Components register delegates with this event to handle
         /// thread idle processing.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static event EventHandler ThreadIdle
         {
             add {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.ThreadIdle += value;
             }
             remove {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.ThreadIdle -= value;
             }
         }
@@ -204,18 +176,13 @@ namespace System.Windows.Interop
         /// Components register delegates with this event to handle
         /// Keyboard Messages (first chance processing).
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         [SuppressMessage("Microsoft.Design", "CA1009:DeclareEventHandlersCorrectly")]
         public static event ThreadMessageEventHandler ThreadFilterMessage
         {
             add {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.ThreadFilterMessage += value;
             }
             remove {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.ThreadFilterMessage -= value;
             }
         }
@@ -224,9 +191,6 @@ namespace System.Windows.Interop
         /// Components register delegates with this event to handle
         /// Keyboard Messages (second chance processing).
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         [SuppressMessage("Microsoft.Design", "CA1009:DeclareEventHandlersCorrectly")]
         public static event ThreadMessageEventHandler ThreadPreprocessMessage
         {
@@ -261,17 +225,12 @@ namespace System.Windows.Interop
         /// Components register delegates with this event to handle
         /// a component on this thread has "gone modal", when previously none were.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static event EventHandler EnterThreadModal
         {
             add {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.EnterThreadModal += value;
             }
             remove {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.EnterThreadModal -= value;
             }
         }
@@ -280,18 +239,13 @@ namespace System.Windows.Interop
         /// Components register delegates with this event to handle
         /// all components on this thread are done being modal.
         ///</summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static event EventHandler LeaveThreadModal
         {
             add
             {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.LeaveThreadModal += value;
             }
             remove {
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 ComponentDispatcher.CurrentThreadData.LeaveThreadModal -= value;
             }
         }

@@ -19,7 +19,6 @@ using System.Diagnostics;       // For Debug.Assert
 using System.Text;              // For Encoding
 using System.Windows;           // For Exception strings - SRID
 using System.Security;                  // for SecurityCritical
-using System.Security.Permissions;      // for permissions
 using Microsoft.Win32;                  // for Registry classes
 
 
@@ -540,14 +539,6 @@ namespace MS.Internal.IO.Packaging
         ///</summary>
         private static bool UserHasProfile()
         {
-            // Acquire permissions to read the one key we care about from the registry
-            // Acquite permission to query the current user identity
-            PermissionSet permissionSet = new PermissionSet(PermissionState.None);
-            permissionSet.AddPermission(new SecurityPermission(SecurityPermissionFlag.ControlPrincipal));
-            permissionSet.AddPermission(new RegistryPermission(RegistryPermissionAccess.Read,
-                _fullProfileListKeyName));
-            permissionSet.Assert();
-
             bool userHasProfile = false;
             RegistryKey userProfileKey = null;
             try
@@ -561,8 +552,6 @@ namespace MS.Internal.IO.Packaging
             {
                 if (userProfileKey != null)
                     userProfileKey.Close();
-
-                CodeAccessPermission.RevertAssert();
             }
 
             return userHasProfile;
@@ -637,7 +626,7 @@ namespace MS.Internal.IO.Packaging
             //------------------------------------------------------
             private string _path;
             private ReliableIsolatedStorageFileFolder _folder;
-            private bool   _disposed;
+            private bool _disposed;
         }
 
 
@@ -831,9 +820,9 @@ namespace MS.Internal.IO.Packaging
             //
             //------------------------------------------------------
             private static IsolatedStorageFile _file;
-            private static bool                _userHasProfile;
-            private int                        _refCount;               // number of outstanding "streams"
-            private bool                       _disposed;
+            private static bool _userHasProfile;
+            private int _refCount;               // number of outstanding "streams"
+            private bool _disposed;
         }
 
         //------------------------------------------------------
@@ -846,7 +835,7 @@ namespace MS.Internal.IO.Packaging
         /// </summary>
         /// <remarks>See PS 1468964 for details.</remarks>
         private static Object _isoStoreSyncObject = new Object();
-        private static Object _isolatedStorageFileLock = new Object();  
+        private static Object _isolatedStorageFileLock = new Object();
         private static ReliableIsolatedStorageFileFolder _defaultFile;
         private const string XmlNamespace = "xmlns";
         private const string _encodingAttribute = "encoding";

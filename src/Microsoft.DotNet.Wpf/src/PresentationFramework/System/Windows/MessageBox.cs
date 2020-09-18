@@ -5,7 +5,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using System.Security;
 using System.ComponentModel;
 
@@ -378,10 +377,6 @@ namespace System.Windows
 
             if ( (options & (MessageBoxOptions.ServiceNotification | MessageBoxOptions.DefaultDesktopOnly)) != 0) 
             {
-                // Demand UnmangedCode permissions if using ServiceNotification/DefaultDesktopOnly.
-                // Details in DevDiv 163043.
-                SecurityHelper.DemandUnmanagedCode();
-
                 if (owner != IntPtr.Zero)
                 {
                     throw new ArgumentException(SR.Get(SRID.CantShowMBServiceWithOwner));

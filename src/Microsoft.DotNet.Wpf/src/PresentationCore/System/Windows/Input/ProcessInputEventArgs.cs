@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Security.Permissions;
 using System.Security; 
 using MS.Internal;
 using MS.Internal.PresentationCore;
@@ -51,9 +50,6 @@ namespace System.Windows.Input
         /// <returns>
         ///     The staging area input item that wraps the specified input.
         /// </returns>
-        ///<remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        ///</remarks> 
         public StagingAreaInputItem PushInput(InputEventArgs input, 
                                               StagingAreaInputItem promote) // Note: this should be a bool, and always use the InputItem available on these args.
         {
@@ -74,10 +70,7 @@ namespace System.Windows.Input
         /// </param>
         /// <returns>
         ///     The specified staging area input item.
-        /// </returns>
-        ///<remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        ///</remarks>        
+        /// </returns>      
         public StagingAreaInputItem PushInput(StagingAreaInputItem input)
         {
             if(!_allowAccessToStagingArea)
@@ -94,13 +87,9 @@ namespace System.Windows.Input
         /// <returns>
         ///     The input event that was on the top of the staging area.
         ///     This can be null, if the staging area was empty.
-        /// </returns>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>        
+        /// </returns>    
         public StagingAreaInputItem PopInput()
         {
-            SecurityHelper.DemandUnrestrictedUIPermission();
             
             if(!_allowAccessToStagingArea)
             {
@@ -117,12 +106,8 @@ namespace System.Windows.Input
         ///     The input event that is on the top of the staging area.
         ///     This can be null, if the staging area is empty.
         /// </returns>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public StagingAreaInputItem PeekInput()
         {
-            SecurityHelper.DemandUnrestrictedUIPermission();
 
             if(!_allowAccessToStagingArea)
             {

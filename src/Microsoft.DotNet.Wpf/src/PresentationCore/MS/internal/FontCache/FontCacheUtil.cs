@@ -19,7 +19,6 @@ using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -322,18 +321,7 @@ namespace MS.Internal.FontCache
 
         static Util()
         {
-            string s;
-            //this code elevates to get access to the windir directory
-            EnvironmentPermission environmentPermission = new EnvironmentPermission(EnvironmentPermissionAccess.Read, "Windir");
-            environmentPermission.Assert(); //Blessed Assert
-            try
-            {
-                s = Environment.GetEnvironmentVariable(WinDir) + @"\Fonts\";
-            }
-            finally
-            {
-                EnvironmentPermission.RevertAssert();
-            }
+            string s = Environment.GetEnvironmentVariable(WinDir) + @"\Fonts\";
 
             _windowsFontsLocalPath = s.ToUpperInvariant();
 
@@ -767,16 +755,6 @@ namespace MS.Internal.FontCache
             return ca - cb;
         }
 
-        // Makes sure the caller has path discovery permission for full fileName path.
-        private static void ValidateFileNamePermissions(ref string fileName)
-        {
-            if (!SecurityHelper.CallerHasPathDiscoveryPermission(fileName))
-            {
-                // If the caller didn't have path discovery permission for fileName, we can still give out relative file name.
-                fileName = Path.GetFileName(fileName);
-            }
-        }
-
         /// <summary>
         /// This function performs job similar to CLR's internal __Error.WinIOError function:
         /// it maps win32 errors from file I/O to CLR exceptions and includes string where possible.
@@ -786,8 +764,6 @@ namespace MS.Internal.FontCache
         /// <param name="fileName">File name string.</param>
         internal static void ThrowWin32Exception(int errorCode, string fileName)
         {
-            ValidateFileNamePermissions(ref fileName);
-
             switch (errorCode)
             {
                 case NativeMethods.ERROR_FILE_NOT_FOUND:
@@ -813,7 +789,6 @@ namespace MS.Internal.FontCache
             if (fontSource.IsFile)
             {
                 fileName = fontSource.Uri.LocalPath;
-                ValidateFileNamePermissions(ref fileName);
             }
             else
             {
@@ -910,18 +885,7 @@ namespace MS.Internal.FontCache
 
 #pragma warning restore 6523
 
-                    // Initialize() method demands UnmanagedCode permission, and OpenFile() is already marked as critical.
-
-                    new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); //Blessed Assert
-
-                    try
-                    {
-                        Initialize((byte*)_viewHandle.Memory, size, size, FileAccess.Read);
-                    }
-                    finally
-                    {
-                        SecurityPermission.RevertAssert();
-                    }
+                    Initialize((byte*)_viewHandle.Memory, size, size, FileAccess.Read);
                 }
             }
             finally

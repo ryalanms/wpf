@@ -229,7 +229,9 @@ namespace System.Windows.Markup
             // so they can be loaded again.   The is the Dev build/load/build/load
             // Designer scenario.  (Don't mess with GACed assemblies)
             Assembly assem = ReflectionHelper.GetAlreadyLoadedAssembly(asmName);
+            #pragma warning disable SYSLIB0005 // 'Assembly.GlobalAssemblyCache' is obsolete. 
             if (assem != null && !assem.GlobalAssemblyCache)
+            #pragma warning restore SYSLIB0005 // 'Assembly.GlobalAssemblyCache' is obsolete. 
             {
                 ReflectionHelper.ResetCacheForAssembly(asmName);
                 // No way to reset SchemaContext at assembly granularity, so just reset the whole context
@@ -401,7 +403,7 @@ namespace System.Windows.Markup
 #if  PBTCOMPILER
 
         private void PreLoadDefaultAssemblies(string asmName, string asmPath)
-        {          
+        {
             if (AssemblyWB == null && string.Compare(asmName, _assemblyNames[0], StringComparison.OrdinalIgnoreCase) == 0)
             {
                 AssemblyWB = ReflectionHelper.LoadAssembly(asmName, asmPath);
@@ -1193,9 +1195,9 @@ namespace System.Windows.Markup
         private bool IsInternalTypeAllowedInFullTrust(Type type)
         {
             bool isAllowed = false;
-            // If caller has Full Trust and the type is internal, then allow them to participate
+            // If the type is internal, then allow them to participate
             // in deciding if that internal type should be accessible.
-            if (ReflectionHelper.IsInternalType(type) && MS.Internal.SecurityHelper.IsFullTrustCaller())
+            if (ReflectionHelper.IsInternalType(type))
             {
                 isAllowed = AllowInternalType(type);
             }
@@ -1399,7 +1401,7 @@ namespace System.Windows.Markup
 
                                 // If we've found a property info, then the owner had better
                                 // be the same type as or a subclass of the objectType, or
-                                // they are in different inheritance hierarchies.  
+                                // they are in different inheritance hierarchies.
                                 if (memberInfo != null)
                                 {
                                     if (owner != null &&
@@ -2479,7 +2481,7 @@ namespace System.Windows.Markup
 #if PBTCOMPILER
         private static bool IsFriendAssembly(Assembly assembly)
         {
-            // WinFx assemblies can never be friends of compiled assemblies, so just bail out.
+            // WinFX assemblies can never be friends of compiled assemblies, so just bail out.
             if (assembly == XamlTypeMapper.AssemblyPF ||
                 assembly == XamlTypeMapper.AssemblyPC ||
                 assembly == XamlTypeMapper.AssemblyWB)
@@ -2748,7 +2750,7 @@ namespace System.Windows.Markup
 
             return ithType;
         }
-        
+
         private static InternalTypeHelper GetInternalTypeHelperFromAssembly(ParserContext pc)
         {
             InternalTypeHelper ith = null;
@@ -2762,33 +2764,14 @@ namespace System.Windows.Markup
 
         internal static object CreateInternalInstance(ParserContext pc, Type type)
         {
-            object instance = null;
-            // if caller has member access reflection permission, use reflection directly
-            if (SecurityHelper.CallerHasMemberAccessReflectionPermission())
-            {
-                instance = Activator.CreateInstance(type,
-                                                    BindingFlags.Public |
-                                                    BindingFlags.NonPublic |
-                                                    BindingFlags.Instance |
-                                                    BindingFlags.CreateInstance,
-                                                    null,
-                                                    null,
-                                                    TypeConverterHelper.InvariantEnglishUS);
-            }
-            else
-            {
-                // else this must be an accessible internal type in PT --- call the generated InternalTypeHelper
-                // in the caller's secuirty context.
-
-                // In this case pc.StreamCreatedAssembly is guaranteed to be the assembly from which the current
-                // stream being read was created from. So even if the internal type were not legitimate, the call
-                // to create it via ith.CreateInstance would fail in PT.
-                InternalTypeHelper ith = XamlTypeMapper.GetInternalTypeHelperFromAssembly(pc);
-                if (ith != null)
-                {
-                    instance = ith.CreateInstance(type, TypeConverterHelper.InvariantEnglishUS);
-                }
-            }
+            object instance = Activator.CreateInstance(type,
+                                                BindingFlags.Public |
+                                                BindingFlags.NonPublic |
+                                                BindingFlags.Instance |
+                                                BindingFlags.CreateInstance,
+                                                null,
+                                                null,
+                                                TypeConverterHelper.InvariantEnglishUS);
 
             return instance;
         }
@@ -2802,25 +2785,7 @@ namespace System.Windows.Markup
 
             if (isAllowedProperty)
             {
-                // if public getter on internal type or caller has member access permission, use reflection directly
-                if (isPublicProperty || SecurityHelper.CallerHasMemberAccessReflectionPermission())
-                {
-                    propValue = pi.GetValue(target, BindingFlags.Default, null, null, TypeConverterHelper.InvariantEnglishUS);
-                }
-                else
-                {
-                    // else this must be an internal property getter on an accessible internal or public type --- call
-                    // the generated helper in caller's secuirty context.
-
-                    // In this case pc.StreamCreatedAssembly is guaranteed to be the assembly from which the current stream
-                    // being read was created from. So even if the internal property were not legitimate, the call
-                    // to access it via ith.GetPropertyValue would fail in PT.
-                    InternalTypeHelper ith = GetInternalTypeHelperFromAssembly(pc);
-                    if (ith != null)
-                    {
-                        propValue = ith.GetPropertyValue(pi, target, TypeConverterHelper.InvariantEnglishUS);
-                    }
-                }
+                propValue = pi.GetValue(target, BindingFlags.Default, null, null, TypeConverterHelper.InvariantEnglishUS);
             }
 
             return propValue;
@@ -2834,27 +2799,8 @@ namespace System.Windows.Markup
 
             if (isAllowedProperty)
             {
-                // if public setter on internal type or caller has member access permission, use reflection directly
-                if (isPublicProperty || SecurityHelper.CallerHasMemberAccessReflectionPermission())
-                {
-                    pi.SetValue(target, value, BindingFlags.Default, null, null, TypeConverterHelper.InvariantEnglishUS);
-                    return true;
-                }
-                else
-                {
-                    // else this must be an internal property setter on an accessible internal or public type --- call
-                    // the generated helper in caller's secuirty context.
-
-                    // In this case pc.StreamCreatedAssembly is guaranteed to be the assembly from which the current stream
-                    // being read was created from. So even if the internal property were not legitimate, the call
-                    // to set it via ith.SetPropertyValue would fail in PT.
-                    InternalTypeHelper ith = GetInternalTypeHelperFromAssembly(pc);
-                    if (ith != null)
-                    {
-                        ith.SetPropertyValue(pi, target, value, TypeConverterHelper.InvariantEnglishUS);
-                        return true;
-                    }
-                }
+                pi.SetValue(target, value, BindingFlags.Default, null, null, TypeConverterHelper.InvariantEnglishUS);
+                return true;
             }
 
             return false;
@@ -2867,24 +2813,7 @@ namespace System.Windows.Markup
 
             if (isAllowedDelegateType)
             {
-                if (SecurityHelper.CallerHasMemberAccessReflectionPermission())
-                {
-                    d = Delegate.CreateDelegate(delegateType, target, handler);
-                }
-                else
-                {
-                    // target is always the root generated element. Check to see if it is in the
-                    // same assembly as the one from which the currently processed stream was created,
-                    // as an added precaution.
-                    if (target.GetType().Assembly == pc.StreamCreatedAssembly)
-                    {
-                        InternalTypeHelper ith = GetInternalTypeHelperFromAssembly(pc);
-                        if (ith != null)
-                        {
-                            d = ith.CreateDelegate(delegateType, target, handler);
-                        }
-                    }
-                }
+                 d = Delegate.CreateDelegate(delegateType, target, handler);
             }
 
             return d;
@@ -2898,27 +2827,8 @@ namespace System.Windows.Markup
 
             if (isAllowedEvent)
             {
-                // if public event on internal type or caller has member access permission, use reflection directly
-                if (isPublicEvent || SecurityHelper.CallerHasMemberAccessReflectionPermission())
-                {
-                    eventInfo.AddEventHandler(target, handler);
-                    return true;
-                }
-                else
-                {
-                    // else this must be an internal event on an accessible internal or public type --- call
-                    // the generated helper in caller's secuirty context.
-
-                    // In this case pc.StreamCreatedAssembly is guaranteed to be the assembly from which the current
-                    // stream being read was created from. So even if the internal event ere not legitimate, the call
-                    // to add a handler to it via ith.AddEventHandler would fail in PT.
-                    InternalTypeHelper ith = GetInternalTypeHelperFromAssembly(pc);
-                    if (ith != null)
-                    {
-                        ith.AddEventHandler(eventInfo, target, handler);
-                        return true;
-                    }
-                }
+                eventInfo.AddEventHandler(target, handler);
+                return true;
             }
 
             return false;
@@ -4555,7 +4465,3 @@ namespace System.Windows.Markup
     }
 #endregion XmlParserDefaults Class
 }
-
-
-
-

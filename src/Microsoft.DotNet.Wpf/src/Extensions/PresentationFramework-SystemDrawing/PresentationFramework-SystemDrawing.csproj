@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
     <EnableDefaultItems>false</EnableDefaultItems>
     <GenerateDependencyFile>false</GenerateDependencyFile>
-    <ProduceReferenceAssembly>false</ProduceReferenceAssembly> 
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SystemDrawingExtension.cs" />
@@ -29,6 +28,5 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="$(SystemDrawingCommonPackage)" Version="$(SystemDrawingCommonVersion)" />
-    <PackageReference Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsPackageVersion)" />
   </ItemGroup>
 </Project>

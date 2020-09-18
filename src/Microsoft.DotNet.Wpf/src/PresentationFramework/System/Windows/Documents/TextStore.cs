@@ -26,7 +26,6 @@ using System.Windows.Interop;
 using System.Windows.Documents;
 using MS.Internal.Documents;
 using System.Security;
-using System.Security.Permissions;
 using MS.Win32;
 
 using IComDataObject = System.Runtime.InteropServices.ComTypes.IDataObject;
@@ -780,7 +779,6 @@ namespace System.Windows.Documents
         // See msdn's ITextStoreACP documentation for a full description.
         public void GetACPFromPoint(int viewCookie, ref UnsafeNativeMethods.POINT tsfPoint, UnsafeNativeMethods.GetPositionFromPointFlags flags, out int positionCP)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             PresentationSource source;
             IWin32Window win32Window;
@@ -2346,15 +2344,7 @@ namespace System.Windows.Documents
             milPointBottomRight = compositionTarget.TransformToDevice.Transform(milPointBottomRight);
 
             IntPtr hwnd = IntPtr.Zero;
-            new UIPermission(UIPermissionWindow.AllWindows).Assert(); // BlessedAssert
-            try
-            {
-                hwnd = win32Window.Handle;
-            }
-            finally
-            {
-                CodeAccessPermission.RevertAssert();
-            }
+            hwnd = win32Window.Handle;
 
             // Transform to screen coords.
             clientPoint = new NativeMethods.POINT();
@@ -2371,7 +2361,6 @@ namespace System.Windows.Documents
         // Insert InkInteropObject at the position.
         private void InsertEmbeddedAtPosition(TextPointer position, IComDataObject data, out UnsafeNativeMethods.TS_TEXTCHANGE change)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             ITextContainer container;
             // Get enhanced metafile handle from IOleDataObject.
@@ -3033,15 +3022,7 @@ namespace System.Windows.Documents
 
                 if (win32Window != null)
                 {
-                    (new UIPermission(UIPermissionWindow.AllWindows)).Assert();//BlessedAssert
-                    try
-                    {
-                        hwnd = win32Window.Handle;
-                    }
-                    finally
-                    {
-                        UIPermission.RevertAssert();
-                    }
+                    hwnd = win32Window.Handle;
                 }
             }
             return hwnd;

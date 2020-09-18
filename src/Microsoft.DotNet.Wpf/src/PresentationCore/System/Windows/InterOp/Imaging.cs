@@ -7,7 +7,6 @@
 
 using System;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using System.Diagnostics;
 using System.Windows;
@@ -39,7 +38,6 @@ namespace System.Windows.Interop
             Int32Rect sourceRect,
             BitmapSizeOptions sizeOptions)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             return CriticalCreateBitmapSourceFromHBitmap(bitmap, palette, sourceRect, sizeOptions, WICBitmapAlphaChannelOption.WICBitmapUseAlpha);
         }
@@ -81,7 +79,6 @@ namespace System.Windows.Interop
             Int32Rect sourceRect,
             BitmapSizeOptions sizeOptions)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             if (icon == IntPtr.Zero)
             {
@@ -111,7 +108,6 @@ namespace System.Windows.Interop
             int stride,
             int offset)
         {
-            SecurityHelper.DemandUnmanagedCode();
 
             if (section == IntPtr.Zero)
             {

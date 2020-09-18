@@ -10,7 +10,6 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Media;
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 using MS.Internal.PresentationCore;                        // SecurityHelper
 using MS.Win32; // VK translation.
@@ -49,7 +48,6 @@ namespace System.Windows.Input
         {
             get
             {  
-                SecurityHelper.DemandUnrestrictedUIPermission();
                 
                 return null;
             }
@@ -304,7 +302,7 @@ namespace System.Windows.Input
         ///     Initializes a new instance of this class.
         /// </summary>
         /// <param name="commandDevice">The logical CommandDevice associated with this event.</param>
-        /// <param name="timestamp">The time when the input occured.</param>
+        /// <param name="timestamp">The time when the input occurred.</param>
         /// <param name="command">Command associated with this event.</param>
         internal CommandDeviceEventArgs(CommandDevice commandDevice, int timestamp, ICommand command)
             : base(commandDevice, timestamp)

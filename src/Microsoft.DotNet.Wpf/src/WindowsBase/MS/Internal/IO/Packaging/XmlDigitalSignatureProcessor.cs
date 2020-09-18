@@ -22,7 +22,6 @@ using System.Security;                      // for SecurityCritical and Security
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Security.Cryptography.X509Certificates;
-using System.Security.Permissions;
 using System.Xml;
 using System.IO;
 using System.Windows;
@@ -109,16 +108,8 @@ namespace MS.Internal.IO.Packaging
             // restrictions imposed by the OPC spec
             ValidateReferences(xmlSig.SignedInfo.References, true /*allowPackageSpecificReference*/);
 
-            (new PermissionSet(PermissionState.Unrestricted)).Assert();
-            try
-            {
-                // verify "standard" XmlSignature portions
-                result = xmlSig.CheckSignature(signer, true);
-            }
-            finally
-            {
-                PermissionSet.RevertAssert();
-            }
+            // verify "standard" XmlSignature portions
+            result = xmlSig.CheckSignature(signer, true);
 
             if (result)
             {
@@ -166,7 +157,7 @@ namespace MS.Internal.IO.Packaging
                                 result = false;     // content type mismatch
                                 break;
                             }
-                            s = part.GetStream(FileMode.Open, FileAccess.Read);
+                            s = part.GetSeekableStream(FileMode.Open, FileAccess.Read);
                         }
 
                         using (s)
@@ -618,7 +609,7 @@ namespace MS.Internal.IO.Packaging
                 // Load the XML
                 XmlDocument xmlDocument = new XmlDocument();
                 xmlDocument.PreserveWhitespace = true;
-                using (Stream s = SignaturePart.GetStream())
+                using (Stream s = SignaturePart.GetSeekableStream())
                 {
                     using (XmlTextReader xmlReader = new XmlTextReader(s))
                     {
@@ -734,7 +725,12 @@ namespace MS.Internal.IO.Packaging
             IEnumerable<System.Security.Cryptography.Xml.Reference> objectReferences)
         {
             // don't overwrite
-            Debug.Assert(SignaturePart.GetStream().Length == 0, "Logic Error: Can't sign when signature already exists");
+#if DEBUG
+            using (Stream stream = SignaturePart.GetStream())
+            {
+                Debug.Assert(stream.Length == 0, "Logic Error: Can't sign when signature already exists");
+            }
+#endif
 
             // grab hash algorithm as this may change in the future
             _hashAlgorithmName = _manager.HashAlgorithm;
@@ -803,25 +799,17 @@ namespace MS.Internal.IO.Packaging
                 // compute the signature
                 SignedXml xmlSig = _signedXml;
 
-                (new PermissionSet(PermissionState.Unrestricted)).Assert();
                 try
                 {
-                    try
-                    {
-                        xmlSig.ComputeSignature();
-                    }
-                    catch (CryptographicException) when (usingMatchingSignatureMethod)
-                    {
-                        // We've hit a state where System.Security is possibly missing the required updates to process the matched signature.
-                        // Disable our matching and attempt to sign again with the default SignatureMethod
-                        BaseCompatibilityPreferences.MatchPackageSignatureMethodToPackagePartDigestMethod = false;
-                        xmlSig.SignedInfo.SignatureMethod = null;
-                        xmlSig.ComputeSignature();
-                    }
+                    xmlSig.ComputeSignature();
                 }
-                finally
+                catch (CryptographicException) when (usingMatchingSignatureMethod)
                 {
-                    PermissionSet.RevertAssert();
+                    // We've hit a state where System.Security is possibly missing the required updates to process the matched signature.
+                    // Disable our matching and attempt to sign again with the default SignatureMethod
+                    BaseCompatibilityPreferences.MatchPackageSignatureMethodToPackagePartDigestMethod = false;
+                    xmlSig.SignedInfo.SignatureMethod = null;
+                    xmlSig.ComputeSignature();
                 }
 
                 // persist
@@ -949,7 +937,7 @@ namespace MS.Internal.IO.Packaging
         private void UpdatePartFromSignature(Signature sig)
         {
             // write to stream
-            using (Stream s = SignaturePart.GetStream(FileMode.Create, FileAccess.Write))
+            using (Stream s = SignaturePart.GetSeekableStream(FileMode.Create, FileAccess.Write))
             {
                 using (XmlTextWriter xWriter = new XmlTextWriter(s, System.Text.Encoding.UTF8))
                 {
@@ -972,16 +960,8 @@ namespace MS.Internal.IO.Packaging
 
         private static Stream TransformXml(Transform xForm, Object source)
         {
-            (new PermissionSet(PermissionState.Unrestricted)).Assert();  // Blessed
-            try
-            {
-                // transform
-                xForm.LoadInput(source);
-            }
-            finally
-            {
-                PermissionSet.RevertAssert();
-            }
+            // transform
+            xForm.LoadInput(source);
 
             return (Stream)xForm.GetOutput();
         }

@@ -6,7 +6,6 @@ using System;
 using System.Windows;
 using System.Windows.Media;
 using System.Security;
-using System.Security.Permissions;
 using MS.Win32;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
@@ -19,11 +18,6 @@ namespace MS.Internal
         ///     Convert a point from "client" coordinate space of a window into
         ///     the coordinate space of the root element of the same window.
         /// </summary>
-        /// <SecurityNote>
-        ///    Critical: This code accesses presentationSource
-        ///    TreatAsSafe: Transforming a Point is considered safe. 
-        /// </SecurityNote>
-        [SecuritySafeCritical]       
         public static Point ClientToRoot(Point pt, PresentationSource presentationSource)
         {
             // Convert from pixels into measure units.
@@ -41,11 +35,6 @@ namespace MS.Internal
         ///     Convert a point from the coordinate space of a root element of
         ///     a window into the "client" coordinate space of the same window.
         /// </summary>
-        /// <SecurityNote>
-        ///    Critical: This code accesses presentationSource
-        ///    TreatAsSafe: Transforming a point is considered safe. 
-        /// </SecurityNote>
-        [SecuritySafeCritical]              
         public static Point RootToClient(Point pt, PresentationSource presentationSource)
         {
             // REVIEW:
@@ -120,16 +109,10 @@ namespace MS.Internal
             return Matrix.Identity;
         }
 
-        /// <SecurityNote>
-        /// SecurityCritical: This code causes eleveation to unmanaged code via call to GetWindowLong and UnsecureGetHandle
-        /// SecurityTreatAsSafe: This data is ok to give out
-        /// validate all code paths that lead to this.
-        /// </SecurityNote>
         /// <summary>
         ///     Convert a point from "client" coordinate space of a window into
         ///     the coordinate space of the screen.
         /// </summary>
-        [SecuritySafeCritical]
         public static Point ClientToScreen(Point ptClient, PresentationSource presentationSource)
         {
             // For now we only know how to use HwndSource.
@@ -160,16 +143,7 @@ namespace MS.Internal
             // Assert for unamanaged code permission to get to the handle. 
             // Note that we can't use HwndSource.UnsecureHandle here - as this method is called cross-assembly
             // 
-            HandleRef handleRef ;             
-            new UIPermission(UIPermissionWindow.AllWindows).Assert(); // BlessedAssert: 
-            try
-            {
-                handleRef = new HandleRef( inputSource, inputSource.Handle ); 
-            }
-            finally
-            {
-                UIPermission.RevertAssert(); 
-            }
+            HandleRef handleRef = new HandleRef( inputSource, inputSource.Handle ); 
             
             int windowStyle = UnsafeNativeMethods.GetWindowLong( handleRef, NativeMethods.GWL_EXSTYLE);
             if ((windowStyle & NativeMethods.WS_EX_LAYOUTRTL) == NativeMethods.WS_EX_LAYOUTRTL)
@@ -188,11 +162,6 @@ namespace MS.Internal
         ///     Convert a point from the coordinate space of the screen into
         ///     the "client" coordinate space of a window.
         /// </summary>
-        /// <SecurityNote>
-        ///    Critical: This code accesses presentationSource
-        ///    TreatAsSafe: Transforming a Point is considered safe. 
-        /// </SecurityNote>
-        [SecuritySafeCritical]         
         internal static Point ScreenToClient(Point ptScreen, PresentationSource presentationSource)
         {
             // For now we only know how to use HwndSource.
@@ -202,16 +171,7 @@ namespace MS.Internal
                 return ptScreen;
             }
 
-            HandleRef handleRef ;
-            new UIPermission(UIPermissionWindow.AllWindows).Assert(); // BlessedAssert: 
-            try
-            {
-                handleRef = new HandleRef( inputSource, inputSource.Handle ); 
-            }
-            finally
-            {
-                UIPermission.RevertAssert();
-            }
+            HandleRef handleRef = new HandleRef( inputSource, inputSource.Handle ); 
             
             // Convert the point from screen coordinates back to client coordinates.
             NativeMethods.POINT ptClient = new NativeMethods.POINT((int)ptScreen.X, (int)ptScreen.Y);

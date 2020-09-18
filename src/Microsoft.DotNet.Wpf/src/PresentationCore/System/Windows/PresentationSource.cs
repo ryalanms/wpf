@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using System.Security;
-using System.Security.Permissions; 
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Markup;
@@ -92,7 +91,6 @@ namespace System.Windows
         ///</remarks> 
         public static PresentationSource FromVisual(Visual visual)
         {
-            SecurityHelper.DemandUIWindowPermission();
 
             return CriticalFromVisual(visual);
         }
@@ -107,7 +105,6 @@ namespace System.Windows
         ///</remarks> 
         public static PresentationSource FromDependencyObject(DependencyObject dependencyObject)
         {
-            SecurityHelper.DemandUIWindowPermission();
 
             return CriticalFromVisual(dependencyObject);
         }
@@ -389,7 +386,6 @@ namespace System.Windows
         {
             get
             {
-                SecurityHelper.DemandUIWindowPermission();
                 return CriticalCurrentSources;
             }
         }

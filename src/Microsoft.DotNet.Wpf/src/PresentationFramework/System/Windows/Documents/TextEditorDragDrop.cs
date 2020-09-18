@@ -27,7 +27,6 @@ namespace System.Windows.Documents
     using System.Windows.Markup;
     using System.Windows;
     using System.Security;
-    using System.Security.Permissions; // UIPermission
 
     using MS.Utility;
     using MS.Win32;
@@ -157,10 +156,7 @@ namespace System.Windows.Documents
             // Returns true if drag is in progress
             internal bool SourceOnMouseMove(Point mouseMovePoint)
             {
-                // Not allow the initiating DragDrop operation without the unmanaged code permission.
-                // We chose to use this over clipboard because this was causing issues in LocalIntranet
-                // which has similar restrictions as internet but has clipboard permission
-                if (!_dragStarted || !SecurityHelper.CheckUnmanagedCodePermission())
+                if (!_dragStarted)
                 {
                     return false; // false means that drag is not involved at all - selection extension should continue
                 }
@@ -675,15 +671,7 @@ namespace System.Windows.Documents
                 source = PresentationSource.CriticalFromVisual(_textEditor.UiScope);
                 if (source != null)
                 {
-                    new UIPermission(UIPermissionWindow.AllWindows).Assert();   //BlessedAssert
-                    try
-                    {
-                        hwnd = (source as IWin32Window).Handle;
-                    }
-                    finally
-                    {
-                        UIPermission.RevertAssert();
-                    }
+                    hwnd = (source as IWin32Window).Handle;
                 }
 
                 if (hwnd != IntPtr.Zero)

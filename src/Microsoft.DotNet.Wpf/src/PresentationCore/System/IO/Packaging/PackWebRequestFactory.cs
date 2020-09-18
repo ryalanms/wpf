@@ -19,7 +19,6 @@ using System.Diagnostics;               // for Assert
 using MS.Internal.IO.Packaging;         // for PackageCache
 using MS.Internal.PresentationCore;     // for ExceptionStringTable
 using System.Security;
-using System.Security.Permissions;
 using MS.Internal;
 
 namespace System.IO.Packaging
@@ -74,9 +73,8 @@ namespace System.IO.Packaging
 #endif
             // only inspect cache if part name is present because cache only contains an object, not
             // the stream it was derived from
-            Uri packageUri;
-            Uri partUri;
-            MS.Internal.IO.Packaging.PackUriHelper.ValidateAndGetPackUriComponents(uri, out packageUri, out partUri);
+            Uri packageUri = System.IO.Packaging.PackUriHelper.GetPackageUri(uri);
+            Uri partUri = System.IO.Packaging.PackUriHelper.GetPartUri(uri);
 
             if (partUri != null)
             {

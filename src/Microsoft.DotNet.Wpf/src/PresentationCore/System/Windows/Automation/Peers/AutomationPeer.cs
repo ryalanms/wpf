@@ -8,7 +8,6 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -220,12 +219,9 @@ namespace System.Windows.Automation.Peers
     {
         /// <summary>
         /// This is the only public constructor on this class.
-        /// It requires "Full Trust" level of security permissions to be executed, since this
-        /// class is wrappign an HWND direct access to which is a critical asset.
         /// </summary>
         public HostedWindowWrapper(IntPtr hwnd)
         {
-            (new SecurityPermission(SecurityPermissionFlag.UnmanagedCode)).Demand();
             _hwnd = hwnd;
         }
 

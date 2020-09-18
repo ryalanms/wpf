@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>  
+    <TargetFramework>netcoreapp5.0</TargetFramework>  
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   
@@ -76,6 +76,9 @@
   <ItemGroup>
     <ProjectReference Include="$(WpfSourceDir)System.Xaml\System.Xaml.csproj" />
     <ProjectReference Include="$(WpfSourceDir)WindowsBase\WindowsBase.csproj" />
+    <ProjectReference Include="$(WpfSourceDir)UIAutomation\UIAutomationTypes\ref\UIAutomationTypes-ref.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -94,7 +97,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsPackageVersion)" />
   </ItemGroup>
 
 </Project>

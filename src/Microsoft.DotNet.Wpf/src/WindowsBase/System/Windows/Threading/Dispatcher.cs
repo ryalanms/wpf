@@ -8,7 +8,6 @@ using MS.Win32;                              // win32 interop
 using System.Windows.Interop;                // ComponentDispatcher & MSG
 using Microsoft.Win32;                       // Registry
 using System.Security;                       // CAS
-using System.Security.Permissions;           // Registry permissions
 using System.Diagnostics;                    // Debug
 using MS.Utility;                            // EventTrace
 using System.Reflection;                     // Assembly
@@ -41,8 +40,6 @@ namespace System.Windows.Threading
             _exceptionWrapper = new ExceptionWrapper();
             _exceptionWrapper.Catch += new ExceptionWrapper.CatchHandler(CatchExceptionStatic);
             _exceptionWrapper.Filter += new ExceptionWrapper.FilterHandler(ExceptionFilterStatic);
-
-            WpfDllVerifier.VerifyWpfDllSet();
         }
 
         /// <summary>
@@ -237,8 +234,6 @@ namespace System.Windows.Threading
         /// </remarks>
         public void BeginInvokeShutdown(DispatcherPriority priority) // NOTE: should be Priority
         {
-            // We didn't want to enable quitting in the SEE
-            SecurityHelper.DemandUnrestrictedUIPermission();
 
             BeginInvoke(priority, new ShutdownCallback(ShutdownCallbackInternal));
         }
@@ -246,13 +241,8 @@ namespace System.Windows.Threading
         /// <summary>
         ///     Begins the process of shutting down the dispatcher.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public void InvokeShutdown()
         {
-            // We didn't want to enable quitting in the SEE
-            SecurityHelper.DemandUnrestrictedUIPermission();
 
             CriticalInvokeShutdown();
         }
@@ -300,7 +290,6 @@ namespace System.Windows.Threading
         /// </summary>
         /// <remarks>
         ///     This frame will continue until the dispatcher is shut down.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public static void Run()
         {
@@ -313,9 +302,6 @@ namespace System.Windows.Threading
         /// <param name="frame">
         ///     The frame for the dispatcher to process.
         /// </param>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static void PushFrame(DispatcherFrame frame)
         {
             if(frame == null)
@@ -345,13 +331,8 @@ namespace System.Windows.Threading
         /// <summary>
         ///     Requests that all nested frames exit.
         /// </summary>
-        /// <remarks>
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
-        /// </remarks>
         public static void ExitAllFrames()
         {
-            // We didn't want to enable exiting all frames in the SEE
-            SecurityHelper.DemandUnrestrictedUIPermission();
 
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
             if(dispatcher._frameDepth > 0)
@@ -1605,7 +1586,6 @@ namespace System.Windows.Threading
         ///     <p/>
         ///     This method is public so that any thread can probe to
         ///     see if it has access to the DispatcherObject.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         /// <returns>
         ///     True if the calling thread has access to this object.
@@ -1644,7 +1624,6 @@ namespace System.Windows.Threading
         ///     creating secondary exceptions and to catch any that occur.
         ///     It is recommended to avoid allocating memory or doing any
         ///     heavylifting if possible.
-        ///     Callers must have UIPermission(PermissionState.Unrestricted) to call this API.
         /// </remarks>
         public event DispatcherUnhandledExceptionFilterEventHandler UnhandledExceptionFilter
         {
@@ -1741,7 +1720,7 @@ namespace System.Windows.Threading
         internal object PtsCache
         {
             // This gets multiplexed with the log for "request processing" failures.
-            // See OnRequestProcessingFailure. 
+            // See OnRequestProcessingFailure.
             [FriendAccessAllowed] // Built into Base, used by Core or Framework.
             get
             {
@@ -1856,18 +1835,13 @@ namespace System.Windows.Threading
                 // Because we may have to defer the actual shutting-down until
                 // later, we need to remember the execution context we started
                 // the shutdown from.
-                //
-                // Note that we demanded permissions when BeginInvokeShutdown
-                // or InvokeShutdown were called.  So if there were not enough
-                // permissions, we would have thrown then.
-                //
                 CulturePreservingExecutionContext shutdownExecutionContext = CulturePreservingExecutionContext.Capture();
                 _shutdownExecutionContext = new SecurityCriticalDataClass<CulturePreservingExecutionContext>(shutdownExecutionContext);
 
                 // Tell Win32 to exit the message loop for this thread.
                 //
                 // This call to PostQuitMessage is commented out because PostQuitMessage
-                // not only shuts down the message pump associated with the Dispatcher, but also 
+                // not only shuts down the message pump associated with the Dispatcher, but also
                 // shuts down any process that might be hosting WPF content (like IE).
                 // UnsafeNativeMethods.PostQuitMessage(0);
                 if(_frameDepth > 0)

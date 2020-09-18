@@ -34,7 +34,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Markup;
 using System.Windows.Media.Converters;
 using System.Security;
-using System.Security.Permissions;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 // These types are aliased to match the unamanaged names used in interop
@@ -878,7 +877,7 @@ namespace System.Windows.Media
 
             void IDisposable.Dispose()
             {
-}
+            }
 
             /// <summary>
             /// Advances the enumerator to the next element of the collection.

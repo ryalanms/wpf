@@ -18,7 +18,6 @@ namespace MS.Internal.Documents
     using System.Runtime.InteropServices;
     using System.Security;
     using MS.Internal.Documents;
-    using System.Security.Permissions;
     using MS.Win32;
     using System.Windows.Interop;
 
@@ -149,13 +148,6 @@ namespace MS.Internal.Documents
             // Creates a new instance.
             internal void AddMenuItems(DocumentGrid dg, bool userInitiated)
             {
-                // create a special menu item for paste which only works for user initiated copy
-                // within the confines of partial trust this cannot be done programmatically
-                if (userInitiated == false)
-                {
-                    SecurityHelper.DemandAllClipboardPermission();
-                }
-
                 this.Name = "ViewerContextMenu";
 
                 SetMenuProperties(new EditorMenuItem(), dg, ApplicationCommands.Copy); // Copy will be marked as user initiated

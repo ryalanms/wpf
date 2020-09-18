@@ -14,7 +14,6 @@ namespace MS.Internal.Printing.Configuration
     using System.Drawing.Printing;
     using System.Runtime.InteropServices;
     using System.Security;
-    using System.Security.Permissions;
     using MS.Internal.PrintWin32Thunk;
 
     /// <summary>
@@ -420,7 +419,7 @@ namespace MS.Internal.Printing.Configuration
 
             if (numOutputs < 1)
             {
-                return new T[0];
+                return Array.Empty<T>();
             }
 
             HGlobalBuffer buffer = new HGlobalBuffer((int)(numOutputs * itemByteSize));

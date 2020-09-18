@@ -9,7 +9,6 @@ namespace MS.Win32
     using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
     using System.Security;
-    using System.Security.Permissions;
     using System.Collections;
     using System.Diagnostics;
     using System.IO;
@@ -259,7 +258,9 @@ namespace MS.Win32
             private BitmapHandle(bool ownsHandle) : base(ownsHandle, NativeMethods.CommonHandles.GDI)
             {
             }
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             protected override bool ReleaseHandle()
             {
                 return UnsafeNativeMethods.DeleteObject(handle);
@@ -285,7 +286,9 @@ namespace MS.Win32
             {
             }
             
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             protected override bool ReleaseHandle()
             {
                 return UnsafeNativeMethods.DestroyIcon(handle);
@@ -311,7 +314,9 @@ namespace MS.Win32
             {
             }
 
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             protected override bool ReleaseHandle()
             {
                 return UnsafeNativeMethods.DestroyCursor( handle );
@@ -573,7 +578,6 @@ namespace MS.Win32
             }
         }
 
-		[HostProtection(SecurityAction.LinkDemand, MayLeakOnAbort=true)]
 		internal sealed class SafeLocalMemHandle : SafeHandleZeroOrMinusOneIsInvalid
 		{
 		    public SafeLocalMemHandle() : base(true)
@@ -590,7 +594,9 @@ namespace MS.Win32
 		        return (LocalFree(base.handle) == IntPtr.Zero);
 		    }
 
+            #pragma warning disable SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
 		    [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+            #pragma warning restore SYSLIB0004 // The Constrained Execution Region (CER) feature is not supported. 
             [DllImport("kernel32.dll")]
 		    private static extern IntPtr LocalFree(IntPtr hMem);
 		}

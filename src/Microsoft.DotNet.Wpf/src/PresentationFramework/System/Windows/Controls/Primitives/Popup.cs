@@ -12,7 +12,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
@@ -1511,7 +1510,7 @@ namespace System.Windows.Controls.Primitives
             // cascading failure.
             if (PopupInitialPlacementHelper.IsPerMonitorDpiScalingActive)
             {
-                DestroyWindow();
+                DestroyWindowImpl();
                 _positionInfo = null;
                 makeNewWindow = true;
             }
@@ -1602,18 +1601,40 @@ namespace System.Windows.Controls.Primitives
             _secHelper.BuildWindow(origin.x, origin.y, targetVisual, IsTransparent, PopupFilterMessage, OnWindowResize, OnDpiChanged);
         }
 
-        private void DestroyWindow()
+        /// <summary>
+        /// Destroys the underlying window (HWND) if it is alive
+        /// </summary>
+        /// <returns>true if the window was destroyed, otherwise false</returns>
+        private bool DestroyWindowImpl()
         {
             if (_secHelper.IsWindowAlive())
             {
                 _secHelper.DestroyWindow(PopupFilterMessage, OnWindowResize, OnDpiChanged);
-                ReleasePopupCapture();
+                return true;
+            }
 
-                // Raise closed event after popup has actually closed
-                OnClosed(EventArgs.Empty);
+            return false;
+        }
 
-                // When closing, clear the placement target registration
-                UpdatePlacementTargetRegistration(PlacementTarget, null);
+        /// <summary>
+        /// Destroys the window, and does additional book-keeping
+        /// like releasing the capture, raising Closed event, and
+        /// clearing placement-target registration
+        /// </summary>
+        private void DestroyWindow()
+        {
+            if (_secHelper.IsWindowAlive())
+            {
+                if (DestroyWindowImpl())
+                {
+                    ReleasePopupCapture();
+
+                    // Raise closed event after popup has actually closed
+                    OnClosed(EventArgs.Empty);
+
+                    // When closing, clear the placement target registration
+                    UpdatePlacementTargetRegistration(PlacementTarget, null);
+                }
             }
         }
 
@@ -2745,18 +2766,7 @@ namespace System.Windows.Controls.Primitives
                 {
                     // Get a handle to the bitmap
                     NativeMethods.BITMAP bm = new NativeMethods.BITMAP();
-                    int resultOfGetObject=0;
-
-
-                    new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert(); //Blessed Assert
-                    try
-                    {
-                        resultOfGetObject = UnsafeNativeMethods.GetObject(iconInfo.hbmMask.MakeHandleRef(null), Marshal.SizeOf(typeof(NativeMethods.BITMAP)), bm);
-                    }
-                    finally
-                    {
-                        SecurityPermission.RevertAssert();
-                    }
+                    int resultOfGetObject =  UnsafeNativeMethods.GetObject(iconInfo.hbmMask.MakeHandleRef(null), Marshal.SizeOf(typeof(NativeMethods.BITMAP)), bm);
 
                     if (resultOfGetObject != 0)
                     {
@@ -3203,9 +3213,6 @@ namespace System.Windows.Controls.Primitives
 
             internal void SetHitTestable(bool hitTestable)
             {
-                // demands unmanaged code permission. it's risky to take this demand out.
-                if (! IsChildPopup)
-                    SecurityHelper.DemandUnmanagedCode();
 
                 // get the window handle
                 IntPtr handle = Handle;
@@ -3320,10 +3327,6 @@ namespace System.Windows.Controls.Primitives
                     {
                         param.ParentWindow = parent;
                     }
-                    else
-                    {
-                        SecurityHelper.DemandUIWindowPermission();
-                    }
                 }
                 else
                 {
@@ -3337,16 +3340,8 @@ namespace System.Windows.Controls.Primitives
                 // create popup's window object
                 HwndSource newWindow = new HwndSource(param);
 
-                new UIPermission(UIPermissionWindow.AllWindows).Assert(); //BlessedAssert
-                try
-                {
-                    // add hook to the popup's window
-                    newWindow.AddHook(hook);
-                }
-                finally
-                {
-                    UIPermission.RevertAssert();
-                }
+                // add hook to the popup's window
+                newWindow.AddHook(hook);
 
                 // initialize the private critical window object
                 _window = new SecurityCriticalDataClass<HwndSource>(newWindow);
@@ -3468,18 +3463,9 @@ namespace System.Windows.Controls.Primitives
                 {
                     hwnd.AutoResized -=  onAutoResizedEventHandler ;
                     hwnd.DpiChanged -= onDpiChagnedEventHandler;
-
-                    new UIPermission(UIPermissionWindow.AllWindows).Assert(); // BlessedAssert:
-                    try
-                    {
-                        hwnd.RemoveHook(hook);
-                        hwnd.RootVisual = null;
-                        hwnd.Dispose();
-                    }
-                    finally
-                    {
-                        UIPermission.RevertAssert();
-                    }
+                    hwnd.RemoveHook(hook);
+                    hwnd.RootVisual = null;
+                    hwnd.Dispose();
                 }
             }
 

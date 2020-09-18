@@ -13,7 +13,6 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using System.Security;
-using System.Security.Permissions;
 using System.Diagnostics;
 using MS.Internal;
 using MS.Win32;
@@ -46,7 +45,6 @@ namespace System.Windows.Interop
         {
             get
             {
-                SecurityHelper.DemandUnmanagedCode();
 
                 object oleClientSite = null;
 
@@ -222,16 +220,8 @@ namespace System.Windows.Interop
 
         internal static void InitializeHostFilterInput()
         {
-            (new UIPermission(PermissionState.Unrestricted)).Assert(); // Blessed assert
-            try
-            {
-                ComponentDispatcher.ThreadFilterMessage +=
-                                    new ThreadMessageEventHandler(HostFilterInput);
-            }
-            finally
-            {
-                UIPermission.RevertAssert();
-            }
+            ComponentDispatcher.ThreadFilterMessage +=
+                                new ThreadMessageEventHandler(HostFilterInput);
         }
 
         private static void EnsureScriptInteropAllowed()
@@ -239,18 +229,6 @@ namespace System.Windows.Interop
             if (_isScriptInteropDisabled.Value == null)
             {
                 _isScriptInteropDisabled.Value = SafeSecurityHelper.IsFeatureDisabled(SafeSecurityHelper.KeyToRead.ScriptInteropDisable);
-            }
-
-            // Similar approach as with WebBrowser.cs.
-            if (_isScriptInteropDisabled.Value.Value)
-            {
-                // Feature is disabled - demand unrestricted WebBrowserPermission to hand out the script object.
-                MS.Internal.PresentationFramework.SecurityHelper.DemandWebBrowserPermission();
-            }
-            else
-            {
-                // Feature is enabled - demand Safe level to hand out the script object, granted in Partial Trust by default.
-                (new WebBrowserPermission(WebBrowserPermissionLevel.Safe)).Demand();
             }
         }
 
